@@ -1,0 +1,282 @@
+{"data": [
+    {
+        "symbol": "IBM",
+        "name": "International Business Machines Corp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IBM",
+        "name": "International Business Machines Corp",
+        "exchange": "BATS Trading Inc"
+    },
+    {
+        "symbol": "IBMSY",
+        "name": "IBM ALPHA INDEX",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "VXIBM",
+        "name": "CBOE IBM VIX Index",
+        "exchange": "Market Data Express"
+    },
+    {
+        "symbol": "AXI",
+        "name": "NAS OMX Alpha IBM vs. SPY Settle",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AAPL",
+        "name": "Apple Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AIT",
+        "name": "Applied Industrial Technologies Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AMAT",
+        "name": "Applied Materials Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AMCC",
+        "name": "Applied Micro Circuits Corp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "SAIC",
+        "name": "Science Applications International Corp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ARCI",
+        "name": "Appliance Recycling Centers of America Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AIT",
+        "name": "Applied Industrial Technologies Inc",
+        "exchange": "BATS Trading Inc"
+    },
+    {
+        "symbol": "SAIC",
+        "name": "Science Applications International Corp",
+        "exchange": "BATS Trading Inc"
+    },
+    {
+        "symbol": "APDNW",
+        "name": "Applied DNA Sciences Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "APDN",
+        "name": "Applied DNA Sciences Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "FB",
+        "name": "Facebook, Inc.",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "FBC",
+        "name": "Flagstar Bancorp Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FBNC",
+        "name": "First Bancorp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "FBP",
+        "name": "First Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FBIZ",
+        "name": "First Business Financial Services Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "FFG",
+        "name": "FBL Financial Group Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GIFI",
+        "name": "Gulf Island Fabrication Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "DFT",
+        "name": "DuPont Fabros Technology Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FBRC",
+        "name": "FBR & Co",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "FN",
+        "name": "Fabrinet",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GOOD",
+        "name": "Gladstone Commercial Corp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GOOGL",
+        "name": "Google Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GOOG",
+        "name": "Google Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GOOSY",
+        "name": "GOOG ALPHA INDEX",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "DKS",
+        "name": "Dick's Sporting Goods Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GDP",
+        "name": "Goodrich Petroleum Corp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GT",
+        "name": "Goodyear Tire & Rubber Co",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "BGFV",
+        "name": "Big 5 Sporting Goods Corp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GTIM",
+        "name": "Good Times Restaurants Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "RGSE",
+        "name": "Real Goods Solar Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AM",
+        "name": "Antero Midstream Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AM",
+        "name": "Antero Midstream Partners LP",
+        "exchange": "BATS Trading Inc"
+    },
+    {
+        "symbol": "AMAT",
+        "name": "Applied Materials Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AMCC",
+        "name": "Applied Micro Circuits Corp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AME",
+        "name": "Ametek Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AMED",
+        "name": "Amedisys Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AMZN",
+        "name": "Amazon.com Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AMAG",
+        "name": "AMAG Pharmaceuticals Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "DOX",
+        "name": "Amdocs Ltd",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "EPAX",
+        "name": "Ambassadors Group Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TSLA",
+        "name": "Tesla Motors Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TSCO",
+        "name": "Tractor Supply Co",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TSI",
+        "name": "TCW Strategic Income",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TSN",
+        "name": "Tyson Foods Inc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TSO",
+        "name": "Tesoro Corp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TSRA",
+        "name": "Tessera Technologies Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TESO",
+        "name": "TESCO Corp",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TESS",
+        "name": "TESSCO Technologies Inc",
+        "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TNP",
+        "name": "Tsakos Energy Navigation Ltd",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TNP",
+        "name": "Tsakos Energy Navigation Ltd",
+        "exchange": "BATS Trading Inc"
+    },
+    {
+        "symbol": "DJUSVN",
+        "name": "DJ US DISVINTNER",
+        "exchange": "Dow Jones Global Indexes"
+    }
+]}

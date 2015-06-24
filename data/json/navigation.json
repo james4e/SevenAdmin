@@ -1,0 +1,38 @@
+{ "data": [
+    {
+        "id": 1,
+        "title": "Dash Board",
+        "view": "c-dashboard",
+        "default": true
+    },
+    {
+        "id": 2,
+        "title": "Account Overview",
+        "view": "overview"
+    },
+    {
+        "id": 3,
+        "title": "Trade",
+        "view": "trade"
+    },
+    {
+        "id": 4,
+        "title": "Quote",
+        "view": "quote"
+    },
+    {
+        "id": 5,
+        "title": "Watch List",
+        "view": "watchlist"
+    },
+    {
+        "id": 6,
+        "title": "Position",
+        "view": "position"
+    },
+    {
+        "id": 7,
+        "title": "Profile",
+        "view": "profile"
+    }
+]}

@@ -1,0 +1,122 @@
+.base {
+    background-image: url(../images/square.gif);
+    font-family: 'axelregular', sans-serif;
+    color: #333333;
+    opacity: 0;
+}
+
+.app-header {
+    font: 500 40px/80px 'source_sans_probold';
+    text-align: center;
+    background: #F1495B;
+    color: #FFFFFF;
+}
+
+.navigation {
+    background: #38404A;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.navigation-item {
+    padding-left: 20px;
+    color: #bababa;
+    font: 600 18px/60px 'axelregular';
+}
+
+.navigation-item.x-view-item-focused {
+    outline: 0 solid #313841 !important;
+    outlinc-offset: -1px;
+}
+
+.navigation-item:hover, .navigation-item.active {
+    background: #313841;
+    color: #FFFFFF;
+}
+
+.navigation-item:hover {
+    cursor: pointer;
+}
+
+/*************************************** COMMON **************************************/
+a {
+
+}
+
+.c-middle {
+    display: tablc-cell;
+    vertical-align: middle;
+}
+
+.c-left {
+    float: left;
+}
+
+.c-right {
+    float: right;
+}
+
+.c-scroll-x {
+    overflow-x: auto;
+}
+
+.c-scroll-y {
+    overflow-y: auto;
+}
+
+.c-datc-30 .x-form-trigger {
+    margin-top: 4px;
+}
+
+.c-datc-30 .x-form-trigger-wrap {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.c-datc-30 .x-form-text, .c-datc-30 .x-trigger-cell {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.c-trigger-multi-pc input::-webkit-input-placeholder {
+    color: #333 !important;
+}
+
+.c-trigger-30 .x-form-trigger-wrap {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.c-trigger-30 .x-form-text, .c-trigger-30 .x-trigger-cell {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.c-trigger-30 .x-form-trigger {
+    height: 28px;
+    background-position: 0 2px;
+}
+
+.c-trigger-30 .x-form-trigger-over {
+    background-position: -22px 2px;
+}
+
+.c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger {
+    background-position: -66px 2px;
+}
+
+.c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger-over {
+    background-position: -88px 2px;
+}
+
+.c-trigger-30 .x-form-trigger-click, .c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger-click {
+    background-position: -44px 2px;
+}
