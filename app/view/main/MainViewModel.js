@@ -8,6 +8,6 @@ Ext.define('SevenAdmin.view.main.MainViewModel', {
 
     data: {
         appName: 'SevenAdmin',
-        headerText: 'CATANA'
+        headerText: '7 ADMIN'
     }
 });
