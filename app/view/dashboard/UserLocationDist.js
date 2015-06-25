@@ -1,15 +1,15 @@
 //Created by Shiyang Fei on 1/21/2015
-Ext.define('SevenAdmin.view.overview.FundStatus', {
+Ext.define('SevenAdmin.view.dashboard.UserLocationDist', {
     extend: 'SevenAdmin.component.Panel',
     requires: [
-        'SevenAdmin.store.myaccount.FundStatusStore',
+        'SevenAdmin.store.dashboard.UserLocationDistStore',
         'SevenAdmin.component.chart.ux.Highcharts'
     ],
-    xtype: 'fund-status',
-    title: 'Fund Status',
+    xtype: 'user-location-dist',
+    title: 'User Location Distribution',
 
     initComponent: function () {
-        var chartStore = Ext.create('SevenAdmin.store.myaccount.FundStatusStore');
+        var chartStore = Ext.create('SevenAdmin.store.dashboard.UserLocationDistStore');
         this.items = [
             {
                 xtype: "highchart",
@@ -17,7 +17,7 @@ Ext.define('SevenAdmin.view.overview.FundStatus', {
                 series: [
                     {
                         type: 'pie',
-                        categorieField: 'fundType',
+                        categorieField: 'location',
                         dataField: 'amount'
                     }
                 ],
@@ -33,7 +33,7 @@ Ext.define('SevenAdmin.view.overview.FundStatus', {
                                 enabled: true,
                                 formatter: function (){
                                     return '<b>' + this.key + ': </b><br>'
-                                        + Ext.util.Format.usMoney(this.y);
+                                        + this.y;
                                 }
                             }
                         }
@@ -48,7 +48,7 @@ Ext.define('SevenAdmin.view.overview.FundStatus', {
                     },
                     tooltip: {
                         formatter: function () {
-                            return Ext.util.Format.usMoney(this.y);
+                            return this.y;
                         }
                     }
                 }

@@ -1,17 +1,17 @@
 /**
  * Created by shiyangfei on 1/14/15.
  */
-Ext.define('SevenAdmin.view.overview.FundHistory', {
+Ext.define('SevenAdmin.view.dashboard.UserCountHistory', {
     extend: 'SevenAdmin.component.Panel',
     requires: [
-        'SevenAdmin.store.myaccount.AccountHistoryStore',
+        'SevenAdmin.store.dashboard.UserCountHistoryStore',
         'SevenAdmin.component.chart.ux.Highcharts'
     ],
-    xtype: 'account-history',
-    title: 'Fund History',
+    xtype: 'user-count-history',
+    title: 'User Trend',
 
     initComponent: function () {
-        var chartStore = Ext.create('SevenAdmin.store.myaccount.AccountHistoryStore');
+        var chartStore = Ext.create('SevenAdmin.store.dashboard.UserCountHistoryStore');
         this.items = [
             {
                 xtype: "highchart",
@@ -40,39 +40,12 @@ Ext.define('SevenAdmin.view.overview.FundHistory', {
                     tooltip: {
                         formatter: function() {
                             return  '<b>' + Ext.util.Format.date(this.x, 'm/d/y') +'</b><br/>'
-                                + Ext.util.Format.usMoney(this.y);
+                                + this.y;
                         }
                     }
                 }
             }
         ];
-
-        //TODO: when there is enough data, we will bring this time filter back
-        /*this.tbar = [
-            {
-                xtype: 'segmentedbutton',
-                items: [
-                    {
-                        itemId: 'oneYear',
-                        text: '1Y'
-                    },
-                    {
-                        itemId: 'sixMonth',
-                        text: '6M'
-                    },
-                    {
-                        itemId: 'oneMonth',
-                        text: '1M'
-                    },
-                    {
-                        itemId: 'oneWeek',
-                        text: '1W',
-                        pressed: true
-                    }
-                ]
-            },
-
-        ];*/
         this.callParent(arguments);
     }
 });

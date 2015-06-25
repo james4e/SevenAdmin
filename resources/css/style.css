@@ -48,7 +48,7 @@ a {
 }
 
 .c-middle {
-    display: tablc-cell;
+    display: table-cell;
     vertical-align: middle;
 }
 
@@ -119,4 +119,21 @@ a {
 
 .c-trigger-30 .x-form-trigger-click, .c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger-click {
     background-position: -44px 2px;
+}
+
+
+.statics-section {
+    width: 30%;
+    float: left;
+    padding: 20px;
+    color: #666666;
+    font: 500 40px/80px 'source_sans_probold';
+}
+
+.statics-header {
+
+}
+
+.statics-body {
+
 }

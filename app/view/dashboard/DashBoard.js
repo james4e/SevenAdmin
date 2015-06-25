@@ -5,10 +5,9 @@ Ext.define('SevenAdmin.view.dashboard.DashBoard', {
     extend: 'SevenAdmin.component.View',
     xtype: 'c-dashboard',
     requires: [
-        'SevenAdmin.view.overview.FundHistory',
-        'SevenAdmin.view.watchlist.WatchListGrid',
-        'SevenAdmin.view.position.PositionGrid',
-        'SevenAdmin.view.overview.FundStatus'
+        'SevenAdmin.view.dashboard.UserCountHistory',
+        'SevenAdmin.view.dashboard.UserLocationDist',
+        'SevenAdmin.view.dashboard.StaticSummary'
     ],
     autoScroll: true,
     items: [
@@ -21,62 +20,26 @@ Ext.define('SevenAdmin.view.dashboard.DashBoard', {
             },
             items: [
                 {
-                    xtype: 'account-history',
+                    xtype: 'statics-summary',
+                    viewPanel: true
+                }
+            ]
+        },
+        {
+            xtype: 'container',
+            minHeight: 280,
+            flex: 1,
+            defaults: {
+                flex: 1
+            },
+            items: [
+                {
+                    xtype: 'user-count-history',
                     viewPanel: true
                 },
                 {
-                    xtype: 'fund-status',
+                    xtype: 'user-location-dist',
                     viewPanel: true
-                }
-            ]
-        },
-        {
-            xtype: 'container',
-            minHeight: 280,
-            flex: 1,
-            defaults: {
-                flex: 1
-            },
-            items: [
-                {
-                    xtype: 'c-panel',
-                    viewPanel: true,
-                    title: 'Watch List',
-                    tbar: [
-                        {xtype: 'button', itemId: 'remove', text: 'Remove'},
-                        {xtype: 'button', itemId: 'trade', text: 'Trade'},
-                        {xtype: 'button', itemId: 'detail', text: 'Details'}
-                    ],
-                    items: [
-                        {
-                            xtype: 'watch-list-grid'
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            xtype: 'container',
-            minHeight: 280,
-            flex: 1,
-            defaults: {
-                flex: 1
-            },
-            items: [
-                {
-                    xtype: 'c-panel',
-                    viewPanel: true,
-                    title: 'Positions',
-                    tbar: [
-                        {xtype: 'button', itemId: 'remove', text: 'Add To Watch List'},
-                        {xtype: 'button', itemId: 'trade', text: 'Trade'},
-                        {xtype: 'button', itemId: 'detail', text: 'Details'}
-                    ],
-                    items: [
-                        {
-                            xtype: 'position-grid'
-                        }
-                    ]
                 }
             ]
         }

@@ -8,12 +8,13 @@ Ext.define('SevenAdmin.view.main.MainViewController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.main',
     requires: [
-        'SevenAdmin.component.ConstructionPanel'
+        'SevenAdmin.component.ConstructionPanel',
+        'SevenAdmin.view.student.StudentManagement',
+        'SevenAdmin.view.instructor.InstructorManagement'
     ],
 
     onNavigationItemClick: function (dataview, record, item, index, e, eOpts) {
-        var me = this,
-            centerContainer = this.lookupReference('center');
+        var me = this;
         me.switchView(record.get('view'), record.get('title'));
     },
 
