@@ -1,16 +1,16 @@
-<project name="js-impl">
+<project name="x-js-impl">
     <!--
     this target extracts split mode information from the compiler's app
     processor to determine various pieces of information
     -->
-    <target name="-detect-app-build-properties"
+    <target name="-detect-app-build-properties" 
             depends="-init-app-js-files">
         <x-load-app-builder-properties
-                refid="${compiler.ref.id}"
-                splitModePropName="enable.split.mode"
-                pageModePropName="app.page.mode"
-                hasJsSdkPropName="app.has.js.sdk"
-                hasCssSdkPropName="app.has.css.sdk"/>
+            refid="${compiler.ref.id}"
+            splitModePropName="enable.split.mode"
+            pageModePropName="app.page.mode"
+            hasJsSdkPropName="app.has.js.sdk"
+            hasCssSdkPropName="app.has.css.sdk"/>
     </target>
 
     <!--    
@@ -89,7 +89,7 @@
             </else>
         </if>
     </target>
-
+    
     <!--    
     Build javascript
     -->

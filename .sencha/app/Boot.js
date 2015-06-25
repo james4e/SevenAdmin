@@ -30,7 +30,8 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
              * In debug builds, adding a "cache" or "disableCacheBuster" query parameter
              * to the page's URL will set this to `false`.
              */
-            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) || !(/http[s]?\:/i.test(location.href)) ||
+            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
+                !(/http[s]?\:/i.test(location.href)) ||
                 /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
                 true,
 
@@ -70,7 +71,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             node: !isBrowser && (typeof require === 'function'),
             phantom: (typeof phantom !== 'undefined' && phantom.fs)
         },
-        _tags = {},
+        _tags = (Ext.platformTags = {}),
 
     //<debug>
         _debug = function (message) {
@@ -146,8 +147,6 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
 
             Entry: Entry,
 
-            platformTags: _tags,
-
             /**
              * The defult function that detects various platforms and sets tags
              * in the platform map accrodingly.  Examples are iOS, android, tablet, etc.
@@ -176,7 +175,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                         'Safari',
                         'Windows Phone'
                     ],
-                    isEventSupported = function (name, tag) {
+                    isEventSupported = function(name, tag) {
                         if (tag === undefined) {
                             tag = window;
                         }
@@ -245,7 +244,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                     ios: (uaTags.iPad || uaTags.iPhone || uaTags.iPod),
                     android: uaTags.Android || uaTags.Silk,
                     blackberry: isBlackberry,
-                    safari: uaTags.Safari && isBlackberry,
+                    safari: uaTags.Safari && !isBlackberry,
                     chrome: uaTags.Chrome,
                     ie10: isIE10,
                     windows: isIE10 || uaTags.Trident,
@@ -299,19 +298,14 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 return platform;
             },
 
-            getPlatformTags: function () {
-                return Boot.platformTags;
-            },
-
             filterPlatform: function (platform) {
                 platform = [].concat(platform);
-                var tags = Boot.getPlatformTags(),
-                    len, p, tag;
+                var len, p, tag;
 
                 for (len = platform.length, p = 0; p < len; p++) {
                     tag = platform[p];
-                    if (tags.hasOwnProperty(tag)) {
-                        return !!tags[tag];
+                    if (_tags.hasOwnProperty(tag)) {
+                        return !!_tags[tag];
                     }
                 }
                 return false;
@@ -368,8 +362,8 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 origin = window.location.origin ||
                     window.location.protocol +
                     "//" +
-                    window.location.hostnaBoot +
-                    (window.location.port ? ':' + window.location.port : '');
+                    window.location.hostname +
+                    (window.location.port ? ':' + window.location.port: '');
                 Boot.origin = origin;
 
                 Boot.detectPlatformTags();
@@ -391,6 +385,8 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
              * @private
              */
             canonicalUrl: function (url) {
+                // @TODO - see if we need this fallback logic
+                // http://stackoverflow.com/questions/470832/getting-an-absolute-url-from-a-relative-one-ie6-issue
                 resolverEl.href = url;
 
                 var ret = resolverEl.href,
@@ -460,7 +456,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 return entry;
             },
 
-            processRequest: function (request, sync) {
+            processRequest: function(request, sync) {
                 request.loadEntries(sync);
             },
 
@@ -504,26 +500,26 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 return Boot;
             },
 
-            loadBasePrefix: function (request) {
+            loadBasePrefix: function(request) {
                 request = new Request(request);
                 request.prependBaseUrl = true;
                 return Boot.load(request);
             },
 
-            loadSyncBasePrefix: function (request) {
+            loadSyncBasePrefix: function(request) {
                 request = new Request(request);
                 request.prependBaseUrl = true;
                 return Boot.loadSync(request);
             },
 
-            requestComplete: function (request) {
+            requestComplete: function(request) {
                 var next;
 
                 if (Boot.currentRequest === request) {
                     Boot.currentRequest = null;
-                    while (Boot.suspendedQueue.length > 0) {
+                    while(Boot.suspendedQueue.length > 0) {
                         next = Boot.suspendedQueue.shift();
-                        if (!next.done) {
+                        if(!next.done) {
                             //<debug>
                             _debug("resuming suspended request");
                             //</debug>
@@ -564,11 +560,11 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 return Request.prototype.getPathsFromIndexes(indexMap, loadOrder);
             },
 
-            createLoadOrderMap: function (loadOrder) {
+            createLoadOrderMap: function(loadOrder) {
                 return Request.prototype.createLoadOrderMap(loadOrder);
             },
 
-            fetch: function (url, complete, scope, async) {
+            fetch: function(url, complete, scope, async) {
                 async = (async === undefined) ? !!complete : async;
 
                 var xhr = new XMLHttpRequest(),
@@ -614,7 +610,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 return result;
             },
 
-            notifyAll: function (entry) {
+            notifyAll: function(entry) {
                 entry.notifyRequests();
             }
         };
@@ -625,7 +621,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
      * in this request.
      */
     function Request(cfg) {
-        if (cfg.$isRequest) {
+        if(cfg.$isRequest) {
             return cfg;
         }
 
@@ -812,7 +808,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 expanded;
 
             if (!me.expanded) {
-                expanded = this.expandUrls(urls);
+                expanded = this.expandUrls(urls, true);
                 me.expanded = true;
             } else {
                 expanded = urls;
@@ -834,8 +830,8 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             return this.urls;
         },
 
-        prepareUrl: function (url) {
-            if (this.prependBaseUrl) {
+        prepareUrl: function(url) {
+            if(this.prependBaseUrl) {
                 return Boot.baseUrl + url;
             }
             return url;
@@ -862,30 +858,30 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             return entries;
         },
 
-        loadEntries: function (sync) {
+        loadEntries: function(sync) {
             var me = this,
                 entries = me.getEntries(),
                 len = entries.length,
                 start = me.loadStart || 0,
                 continueLoad, entry, i;
 
-            if (sync !== undefined) {
+            if(sync !== undefined) {
                 me.sync = sync;
             }
 
             me.loaded = me.loaded || 0;
             me.loading = me.loading || len;
 
-            for (i = start; i < len; i++) {
+            for(i = start; i < len; i++) {
                 entry = entries[i];
-                if (!entry.loaded) {
+                if(!entry.loaded) {
                     continueLoad = entries[i].load(me.sync);
                 } else {
                     continueLoad = true;
                 }
-                if (!continueLoad) {
+                if(!continueLoad) {
                     me.loadStart = i;
-                    entry.onDone(function () {
+                    entry.onDone(function(){
                         me.loadEntries(sync);
                     });
                     break;
@@ -947,24 +943,24 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             }
         },
 
-        onDone: function (listener) {
+        onDone: function(listener) {
             var me = this,
                 listeners = me.listeners || (me.listeners = []);
-            if (me.done) {
+            if(me.done) {
                 listener(me);
             } else {
                 listeners.push(listener);
             }
         },
 
-        fireListeners: function () {
+        fireListeners: function() {
             var listeners = this.listeners,
                 listener;
-            if (listeners) {
+            if(listeners) {
                 //<debug>
                 _debug("firing request listeners");
                 //</debug>
-                while ((listener = listeners.shift())) {
+                while((listener = listeners.shift())) {
                     listener(this);
                 }
             }
@@ -977,7 +973,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
      * interested in this url that the content is available.
      */
     function Entry(cfg) {
-        if (cfg.$isEntry) {
+        if(cfg.$isEntry) {
             return cfg;
         }
 
@@ -991,21 +987,20 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             cache = (cfg.cache !== undefined) ? cfg.cache : (loader && loader.cache),
             buster, busterParam;
 
-        if (cache === undefined) {
+        if(cache === undefined) {
             cache = !Boot.config.disableCaching;
         }
 
-        if (cache === false) {
+        if(cache === false) {
             buster = +new Date();
-        } else if (cache !== true) {
+        } else if(cache !== true) {
             buster = cache;
         }
 
-        if (buster) {
+        if(buster) {
             busterParam = (loader && loader.cacheParam) || Boot.config.disableCachingParam;
             buster = busterParam + "=" + buster;
-        }
-        ;
+        };
 
         _apply(cfg, {
             charset: charset,
@@ -1020,9 +1015,9 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
         evaluated: false,
         loaded: false,
 
-        isCrossDomain: function () {
+        isCrossDomain: function() {
             var me = this;
-            if (me.crossDomain === undefined) {
+            if(me.crossDomain === undefined) {
                 //<debug>
                 _debug("checking " + me.getLoadUrl() + " for prefix " + Boot.origin);
                 //</debug>
@@ -1049,11 +1044,11 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 if (me.isCss()) {
                     tag = tag || "link";
                     el = doc.createElement(tag);
-                    if (tag == "link") {
+                    if(tag == "link") {
                         el.rel = 'stylesheet';
                         me.prop = 'href';
                     } else {
-                        me.prop = "textContent";
+                        me.prop="textContent";
                     }
                     el.type = "text/css";
                 } else {
@@ -1126,25 +1121,25 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             }
         },
 
-        createLoadElement: function (callback) {
+        createLoadElement: function(callback) {
             var me = this,
                 el = me.getElement(),
-                readyStateChange = function () {
+                readyStateChange = function(){
                     if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                        if (callback) {
+                        if(callback) {
                             callback();
                         }
                     }
                 },
-                errorFn = function () {
+                errorFn = function() {
                     me.error = true;
-                    if (callback) {
+                    if(callback) {
                         callback();
                     }
                 };
             me.preserve = true;
             el.onerror = errorFn;
-            if (Boot.hasReadyState) {
+            if(Boot.hasReadyState) {
                 el.onreadystatechange = readyStateChange;
             } else {
                 el.onload = callback;
@@ -1153,7 +1148,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             el[me.prop] = me.getLoadUrl();
         },
 
-        onLoadElementReady: function () {
+        onLoadElementReady: function() {
             Boot.getHead().appendChild(this.getElement());
             this.evaluated = true;
         },
@@ -1173,7 +1168,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 basePath = key.substring(0, key.lastIndexOf("/") + 1);
                 base = doc.createElement('base');
                 base.href = basePath;
-                if (head.firstChild) {
+                if(head.firstChild) {
                     head.insertBefore(base, head.firstChild);
                 } else {
                     head.appendChild(base);
@@ -1191,7 +1186,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 ieMode = ('styleSheet' in el);
 
                 head.appendChild(base);
-                if (ieMode) {
+                if(ieMode) {
                     head.appendChild(el);
                     el.styleSheet.cssText = content;
                 } else {
@@ -1212,18 +1207,18 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             return me;
         },
 
-        loadCrossDomain: function () {
+        loadCrossDomain: function() {
             var me = this,
-                complete = function () {
+                complete = function(){
                     me.loaded = me.evaluated = me.done = true;
                     me.notifyRequests();
                 };
-            if (me.isCss()) {
+            if(me.isCss()) {
                 me.createLoadElement();
                 me.evaluateLoadElement();
                 complete();
             } else {
-                me.createLoadElement(function () {
+                me.createLoadElement(function(){
                     complete();
                 });
                 me.evaluateLoadElement();
@@ -1235,16 +1230,16 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             return true;
         },
 
-        loadElement: function () {
+        loadElement: function() {
             var me = this,
-                complete = function () {
+                complete = function(){
                     me.loaded = me.evaluated = me.done = true;
                     me.notifyRequests();
                 };
-            if (me.isCss()) {
+            if(me.isCss()) {
                 return me.loadCrossDomain();
             } else {
-                me.createLoadElement(function () {
+                me.createLoadElement(function(){
                     complete();
                 });
                 me.evaluateLoadElement();
@@ -1252,7 +1247,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             return true;
         },
 
-        loadSync: function () {
+        loadSync: function() {
             var me = this;
             me.fetch({
                 async: false,
@@ -1267,7 +1262,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
         load: function (sync) {
             var me = this;
             if (!me.loaded) {
-                if (me.loading) {
+                if(me.loading) {
                     // if we're calling back through load and we're loading but haven't 
                     // yet loaded, then we should be in a sequential, cross domain 
                     // load scenario which means we can't continue the load on the 
@@ -1283,20 +1278,20 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 if (!sync) {
                     // if cross domain, just inject the script tag and let the onload
                     // events drive the progression
-                    if (me.isCrossDomain()) {
+                    if(me.isCrossDomain()) {
                         return me.loadCrossDomain();
                     }
                     // for IE, use the readyStateChange allows us to load scripts in parallel
                     // but serialize the evaluation by appending the script node to the 
                     // document
-                    else if (!me.isCss() && Boot.hasReadyState) {
+                    else if(!me.isCss() && Boot.hasReadyState) {
                         me.createLoadElement(function () {
                             me.loaded = true;
                             me.notifyRequests();
                         });
                     }
 
-                    else if (Boot.useElements) {
+                    else if(Boot.useElements) {
                         return me.loadElement();
                     }
                     // for other browsers, just ajax the content down in parallel, and use
@@ -1328,20 +1323,20 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             this.content = null;
         },
 
-        evaluateLoadElement: function () {
+        evaluateLoadElement: function() {
             Boot.getHead().appendChild(this.getElement());
         },
 
         evaluate: function () {
             var me = this;
-            if (!me.evaluated) {
-                if (me.evaluating) {
+            if(!me.evaluated) {
+                if(me.evaluating) {
                     return;
                 }
                 me.evaluating = true;
-                if (me.content !== undefined) {
+                if(me.content !== undefined) {
                     me.evaluateContent();
-                } else if (!me.error) {
+                } else if(!me.error) {
                     me.evaluateLoadElement();
                 }
                 me.evaluated = me.done = true;
@@ -1394,29 +1389,29 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 request = requests[i];
                 request.processLoadedEntries();
             }
-            if (this.done) {
+            if(this.done) {
                 this.fireListeners();
             }
         },
 
-        onDone: function (listener) {
+        onDone: function(listener) {
             var me = this,
                 listeners = me.listeners || (me.listeners = []);
-            if (me.done) {
+            if(me.done) {
                 listener(me);
             } else {
                 listeners.push(listener);
             }
         },
 
-        fireListeners: function () {
+        fireListeners: function() {
             var listeners = this.listeners,
                 listener;
-            if (listeners && listeners.length > 0) {
+            if(listeners && listeners.length > 0) {
                 //<debug>
                 _debug("firing event listeners for url " + this.url);
                 //</debug>
-                while ((listener = listeners.shift())) {
+                while((listener = listeners.shift())) {
                     listener(this);
                 }
             }
@@ -1441,6 +1436,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
 //<if nonBrowser>
     if (_environment.node) {
         Boot.prototype.load = Boot.prototype.loadSync = function (request) {
+            // @TODO
             require(filePath);
             onLoad.call(scope);
         };
@@ -1464,12 +1460,8 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
  * @method
  */
 Ext.globalEval = Ext.globalEval || (this.execScript
-    ? function (code) {
-    execScript(code);
-}
-    : function ($$code) {
-    eval.call(window, $$code);
-});
+    ? function (code) { execScript(code); }
+    : function ($$code) { eval.call(window, $$code); });
 
 //<feature legacyBrowser>
 /*

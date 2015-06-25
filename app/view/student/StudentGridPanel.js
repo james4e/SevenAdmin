@@ -6,7 +6,8 @@ Ext.define('SevenAdmin.view.student.StudentGridPanel', {
     xtype: 'student-panel',
     autoScroll: true,
     requires: [
-        'SevenAdmin.store.student.StudentStore'
+        'SevenAdmin.store.student.StudentStore',
+        'Ext.grid.Panel'
     ],
     title: 'Student Management',
     items: [
@@ -19,7 +20,7 @@ Ext.define('SevenAdmin.view.student.StudentGridPanel', {
             },
             items: [
                 {
-                    xtype: 'grid',
+                    xtype: 'gridpanel',
                     store: Ext.create('SevenAdmin.store.student.StudentStore'),
                     columns: {
                         defaults: {

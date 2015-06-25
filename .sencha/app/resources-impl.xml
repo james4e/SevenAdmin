@@ -1,7 +1,7 @@
-<project name="resources-impl">
+<project name="x-resources-impl">
     <target name="-before-resources"/>
     <target name="-after-resources"/>
-
+    
     <!--'-init-compiler' defined in init-impl.xml-->
     <target name="-resources" depends="-init-compiler">
         <property name="target.json.resources.dir" value="${build.out.base.path}"/>

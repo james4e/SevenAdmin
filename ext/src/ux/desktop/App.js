@@ -12,8 +12,8 @@ Ext.define('Ext.ux.desktop.App', {
 
     requires: [
         'Ext.container.Viewport',
-
-        'Ext.ux.desktop.Desktop'
+        'Ext.ux.desktop.Desktop',
+        'Ext.grid.Panel'
     ],
 
     isReady: false,

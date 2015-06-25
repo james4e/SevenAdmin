@@ -7,7 +7,8 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
     autoScroll: true,
     title: 'Instructor Management',
     requires: [
-        'SevenAdmin.store.instructor.InstructorStore'
+        'SevenAdmin.store.instructor.InstructorStore',
+        'Ext.grid.Panel'
     ],
     items: [
         {
@@ -19,7 +20,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
             },
             items: [
                 {
-                    xtype: 'grid',
+                    xtype: 'gridpanel',
                     store: Ext.create('SevenAdmin.store.instructor.InstructorStore'),
                     columns: {
                         defaults: {
@@ -32,16 +33,16 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                                 dataIndex: 'name'
                             },
                             {
-                                text: 'First Name',
-                                dataIndex: 'firstName'
-                            },
-                            {
                                 text: 'Email',
                                 dataIndex: 'email'
                             },
                             {
                                 text: 'WeChat Id',
                                 dataIndex: 'wechat'
+                            },
+                            {
+                                text: 'Country',
+                                dataIndex: 'country'
                             }
                         ]
                     }

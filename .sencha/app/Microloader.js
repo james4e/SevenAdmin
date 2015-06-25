@@ -15,30 +15,16 @@ Ext.Microloader = Ext.Microloader || (function () {
     var Boot = Ext.Boot,
         _listeners = [],
         _loaded = false,
-        _tags = Boot.platformTags,
+
         Microloader = {
-
-            /**
-             * the global map of tags used
-             */
-            platformTags: _tags,
-
             detectPlatformTags: function () {
                 if (Ext.beforeLoad) {
-                    Ext.beforeLoad(_tags);
+                    Ext.beforeLoad(Ext.platformTags);
                 }
             },
 
             initPlatformTags: function () {
                 Microloader.detectPlatformTags();
-            },
-
-            getPlatformTags: function () {
-                return Boot.platformTags;
-            },
-
-            filterPlatform: function (platform) {
-                return Boot.filterPlatform(platform);
             },
 
             init: function () {
@@ -49,23 +35,23 @@ Ext.Microloader = Ext.Microloader || (function () {
                         Ext.apply(Ext.Boot, Boot);
                         Ext.Boot = Boot;
                     }
-                    if (readyHandler) {
+                    if(readyHandler) {
                         readyHandler();
                     }
                 };
             },
 
-            run: function () {
+            run: function() {
                 Microloader.init();
                 var manifest = Ext.manifest;
 
                 if (typeof manifest === "string") {
                     var extension = ".json",
                         url = manifest.indexOf(extension) === manifest.length - extension.length
-                            ? Boot.baseUrl + manifest
-                            : Boot.baseUrl + manifest + ".json";
+                            ? manifest
+                            : manifest + ".json";
 
-                    Boot.fetch(url, function (result) {
+                    Boot.fetch(url, function(result){
                         manifest = Ext.manifest = JSON.parse(result.content);
                         Microloader.load(manifest);
                     });
@@ -89,7 +75,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                         _loaded = true;
                         Microloader.notify();
                     },
-                    loadResources = function (resources, addLoadedFn) {
+                    loadResources = function(resources, addLoadedFn){
                         for (len = resources.length, i = 0; i < len; i++) {
                             resource = resources[i];
                             include = true;
@@ -101,7 +87,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                             }
                         }
 
-                        if (!addLoadedFn) {
+                        if(!addLoadedFn) {
                             Boot.loadSync({
                                 url: urls,
                                 loadOrder: loadOrder,
@@ -114,7 +100,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                                 loadOrderMap: loadOrderMap,
                                 sequential: true,
                                 success: loadedFn,
-                                failure: loadedFn
+                                failure:  loadedFn
                             });
                         }
                     };
@@ -142,7 +128,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                 Boot.debug("notifying microloader ready listeners...");
                 //</debug>
                 var listener;
-                while ((listener = _listeners.shift())) {
+                while((listener = _listeners.shift())) {
                     listener();
                 }
             }
