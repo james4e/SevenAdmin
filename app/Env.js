@@ -3,5 +3,6 @@
  */
 Ext.define('SevenAdmin.Env', {
     singleton: true,
-    serverIP: '121.199.18.221'
+    serverIP: '121.199.18.221',
+    jsonDataUrlPrefix: 'https://shiyang-fei.github.io/data/'
 });

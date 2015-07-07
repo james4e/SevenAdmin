@@ -9,7 +9,7 @@ Ext.define('SevenAdmin.view.login.Login', {
     xtype: 'app-login',
     config: {
         cls: 'login',
-        html: '<div class="title">Seven Admin</div>'
+        html: '<div class="title">Shiyang Test</div>'
     },
 
     initComponent: function () {
@@ -43,6 +43,7 @@ Ext.define('SevenAdmin.view.login.Login', {
                 buttons: [{
                     text: 'Login',
                     formBind: true,
+                    disabled: true,
                     handler: 'onSubmit'
                 }]
             }

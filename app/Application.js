@@ -18,6 +18,9 @@ Ext.define('SevenAdmin.Application', {
         'main.LoginLocalStore',
         'main.LoginSessionStore'
     ],
+    controllers: [
+        'MainController'
+    ],
 
     init: function () {
         document.getElementsByTagName('body')[0].removeChild(Ext.get('main-loader').dom);

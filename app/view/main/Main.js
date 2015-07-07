@@ -16,7 +16,11 @@ Ext.define('SevenAdmin.view.main.Main', {
         'SevenAdmin.component.Panel',
         'SevenAdmin.component.View',
         'SevenAdmin.Utils',
-        'SevenAdmin.component.chart.ux.Highcharts'
+        'SevenAdmin.component.general.CountryCombo',
+        'SevenAdmin.component.general.DegreeCombo',
+        'SevenAdmin.component.general.MajorsTag',
+        'SevenAdmin.component.general.SchoolCombo',
+        'SevenAdmin.component.general.SubjectsTag'
     ],
     xtype: 'app-main',
     controller: 'main',

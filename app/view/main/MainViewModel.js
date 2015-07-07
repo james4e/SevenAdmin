@@ -7,7 +7,7 @@ Ext.define('SevenAdmin.view.main.MainViewModel', {
     alias: 'viewmodel.main',
 
     data: {
-        appName: 'SevenAdmin',
-        headerText: '7 ADMIN'
+        appName: 'Shiyang Test',
+        headerText: 'Shiyang Test'
     }
 });

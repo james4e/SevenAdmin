@@ -3,51 +3,44 @@
  */
 Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
     extend: 'SevenAdmin.component.Panel',
-    xtype: 'instructor-panel',
+    xtype: 'instructor-grid-panel',
     autoScroll: true,
-    title: 'Instructor Management',
+    title: 'Instructor Summary',
     requires: [
         'SevenAdmin.store.instructor.InstructorStore',
         'Ext.grid.Panel'
     ],
-    items: [
-        {
-            xtype: 'container',
-            minHeight: 280,
-            flex: 1,
-            defaults: {
-                flex: 1
-            },
-            items: [
-                {
-                    xtype: 'gridpanel',
-                    store: Ext.create('SevenAdmin.store.instructor.InstructorStore'),
-                    columns: {
-                        defaults: {
-                            flex: 1,
-                            minWidth: 100
+
+    initComponent: function () {
+        this.items = [
+            {
+                xtype: 'gridpanel',
+                minHeight: 280,
+                flex: 1,
+                store: Ext.create('SevenAdmin.store.instructor.InstructorStore'),
+                autoLoadStore: true,
+                columns: {
+                    defaults: {
+                        flex: 1,
+                        minWidth: 100
+                    },
+                    items: [
+                        {
+                            text: 'Name',
+                            dataIndex: 'name'
                         },
-                        items: [
-                            {
-                                text: 'Name',
-                                dataIndex: 'name'
-                            },
-                            {
-                                text: 'Email',
-                                dataIndex: 'email'
-                            },
-                            {
-                                text: 'WeChat Id',
-                                dataIndex: 'wechat'
-                            },
-                            {
-                                text: 'Country',
-                                dataIndex: 'country'
-                            }
-                        ]
-                    }
+                        {
+                            text: 'Email',
+                            dataIndex: 'email'
+                        },
+                        {
+                            text: 'Approved',
+                            dataIndex: 'approved'
+                        }
+                    ]
                 }
-            ]
-        }
-    ]
+            }
+        ];
+        this.callParent(arguments);
+    }
 });

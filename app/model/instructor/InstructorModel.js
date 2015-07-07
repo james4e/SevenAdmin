@@ -3,28 +3,59 @@ Ext.define('SevenAdmin.model.instructor.InstructorModel', {
     extend: 'Ext.data.Model',
     fields: [
         {
-            name: 'firstName'
+            name: 'approved',
+            type: 'boolean'
         },
         {
-            name: 'lastName'
+            name: 'teacherId'
         },
         {
-            name: 'name',
-            convert: function(v, r) {
-                return r.get('firstName') + ' ' + r.get('lastName');
-            }
+            name: 'name'
         },
         {
-            name: 'email',
-            convert: function(v, r) {
-                return '****@*****';
-            }
+            name: 'roleId'
         },
         {
-            name: 'wechat',
-            convert: function(v, r) {
-                return '********';
-            }
+            name: 'email'
+        },
+        {
+            name: 'phone'
+        },
+        {
+            name: 'school'
+        },
+        {
+            name: 'degree'
+        },
+        {
+            name: 'qq'
+        },
+        {
+            name: 'weixin'
+        },
+        {
+            name: 'description'
+        },
+        {
+            name: 'signupDate'
+        },
+        {
+            name: 'majors'
+        },
+        {
+            name: 'subjects'
+        },
+        {
+            name: 'country'
+        },
+        {
+            name: 'state'
+        },
+        {
+            name: 'zip'
+        },
+        {
+            name: 'profileImage'
         }
     ]
 });
