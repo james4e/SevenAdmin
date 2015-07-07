@@ -5,10 +5,12 @@ Ext.define('SevenAdmin.view.instructor.InstructorManagement', {
     extend: 'SevenAdmin.component.View',
     xtype: 'instructor',
     requires: [
+        'SevenAdmin.view.instructor.InstructorViewController',
         'SevenAdmin.view.instructor.InstructorGridPanel',
         'SevenAdmin.view.instructor.InstructorFormPanel'
     ],
     autoScroll: true,
+    controller: 'instructor',
     items: [
         {
             xtype: 'container',
@@ -19,7 +21,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorManagement', {
             },
             items: [
                 {
-                    xtype: 'container',
+                    xtype: 'instructor-grid-panel',
                     viewPanel: true
                 },
                 {

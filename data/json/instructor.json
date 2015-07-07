@@ -1,9 +1,9 @@
 [
-  {
-    "index": 297,
-    "country": "China",
-    "isActive": false,
-    "lastName": "On",
-    "firstName": "Feng"
-  }
+    {
+        "index": 297,
+        "email": "sfei@me.com",
+        "approved": false,
+        "lastName": "On",
+        "name": "Shiyang Fei"
+    }
 ]
