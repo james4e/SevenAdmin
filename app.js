@@ -15,10 +15,8 @@ Ext.Loader.setConfig({
 Ext.application({
     name: 'SevenAdmin',
 
-    extend: 'SevenAdmin.Application',
-    
-    autoCreateViewport: 'SevenAdmin.view.launch.Launch'
-	
+    extend: 'SevenAdmin.Application'
+
     //-------------------------------------------------------------------------
     // Most customizations should be made to SevenAdmin.Application. If you need to
     // customize this file, doing so below this section reduces the likelihood

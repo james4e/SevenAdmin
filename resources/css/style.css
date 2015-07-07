@@ -1,4 +1,45 @@
-.base {
+/*************************************** COMMON **************************************/
+.c-middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.c-left {
+    float: left;
+}
+
+.c-right {
+    float: right;
+}
+
+.c-scroll-x {
+    overflow-x: auto;
+}
+
+.c-scroll-y {
+    overflow-y: auto;
+}
+
+/**************************LOGIN PAGE**************************/
+.login {
+    background-image: url(../images/square.gif);
+    color: #333333;
+    opacity: 0;
+}
+
+.login .title {
+    margin-top: 30px;
+    font: 500 80px/100px 'source_sans_probold';
+    text-align: center;
+    color: #555555;
+}
+
+.login .login-window {
+
+}
+
+/**************************MAIN PAGE**************************/
+.main {
     background-image: url(../images/square.gif);
     font-family: 'axelregular', sans-serif;
     color: #333333;
@@ -42,98 +83,10 @@
     cursor: pointer;
 }
 
-/*************************************** COMMON **************************************/
-a {
-
-}
-
-.c-middle {
-    display: table-cell;
-    vertical-align: middle;
-}
-
-.c-left {
-    float: left;
-}
-
-.c-right {
-    float: right;
-}
-
-.c-scroll-x {
-    overflow-x: auto;
-}
-
-.c-scroll-y {
-    overflow-y: auto;
-}
-
-.c-datc-30 .x-form-trigger {
-    margin-top: 4px;
-}
-
-.c-datc-30 .x-form-trigger-wrap {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-
-.c-datc-30 .x-form-text, .c-datc-30 .x-trigger-cell {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-
-.c-trigger-multi-pc input::-webkit-input-placeholder {
-    color: #333 !important;
-}
-
-.c-trigger-30 .x-form-trigger-wrap {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-
-.c-trigger-30 .x-form-text, .c-trigger-30 .x-trigger-cell {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-
-.c-trigger-30 .x-form-trigger {
-    height: 28px;
-    background-position: 0 2px;
-}
-
-.c-trigger-30 .x-form-trigger-over {
-    background-position: -22px 2px;
-}
-
-.c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger {
-    background-position: -66px 2px;
-}
-
-.c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger-over {
-    background-position: -88px 2px;
-}
-
-.c-trigger-30 .x-form-trigger-click, .c-trigger-30 .x-form-trigger-wrap-focus .x-form-trigger-click {
-    background-position: -44px 2px;
-}
-
-
 .statics-section {
     width: 30%;
     float: left;
     padding: 20px;
     color: #666666;
     font: 500 40px/80px 'source_sans_probold';
-}
-
-.statics-header {
-
-}
-
-.statics-body {
-
 }

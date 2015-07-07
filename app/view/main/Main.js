@@ -5,7 +5,7 @@
  *
  */
 Ext.define('SevenAdmin.view.main.Main', {
-    extend: 'Ext.container.Container',
+    extend: 'Ext.container.Viewport',
     requires: [
         'SevenAdmin.view.main.MainViewController',
         'SevenAdmin.view.main.MainViewModel',
@@ -16,12 +16,11 @@ Ext.define('SevenAdmin.view.main.Main', {
         'SevenAdmin.component.Panel',
         'SevenAdmin.component.View',
         'SevenAdmin.Utils',
-        'SevenAdmin.component.chart.ux.Highcharts',
-        'SevenAdmin.store.general.AssetStore'
+        'SevenAdmin.component.chart.ux.Highcharts'
     ],
     xtype: 'app-main',
     controller: 'main',
-    cls: 'base',
+    cls: 'main',
     layout: {
         type: 'border'
     },

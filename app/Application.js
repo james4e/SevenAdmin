@@ -7,10 +7,16 @@ Ext.define('SevenAdmin.Application', {
     extend: 'Ext.app.Application',
     name: 'SevenAdmin',
     requires: [
-        'SevenAdmin.view.launch.Launch'
+        'SevenAdmin.view.login.Login',
+        'SevenAdmin.view.main.Main',
+        'SevenAdmin.Ajax',
+        'SevenAdmin.Env',
+        'SevenAdmin.Constants',
+        'SevenAdmin.Utils'
     ],
     stores: [
-        'SevenAdmin.store.general.AssetStore'
+        'main.LoginLocalStore',
+        'main.LoginSessionStore'
     ],
 
     init: function () {
@@ -18,7 +24,24 @@ Ext.define('SevenAdmin.Application', {
     },
 
     launch: function () {
-        Ext.ComponentQuery.query('app-main')[0].getEl().fadeIn({
+        Ext.create('SevenAdmin.store.main.LoginLocalStore').load();
+        Ext.create('SevenAdmin.store.main.LoginSessionStore').load();
+        var view,
+            userId = SevenAdmin.Utils.getCredential('userId'),
+            roleId = SevenAdmin.Utils.getCredential('roleId'),
+            name = SevenAdmin.Utils.getCredential('name');
+        Ext.Ajax.useDefaultXhrHeader = false;
+        if (Ext.isEmpty(userId)) {
+            view = Ext.create('SevenAdmin.view.login.Login');
+        } else {
+            Ext.getStore('LoginSession').add({
+                userId: userId,
+                roleId: roleId,
+                name: name
+            });
+            view = Ext.create('SevenAdmin.view.main.Main');
+        }
+        view.getEl().fadeIn({
             duration: 1000
         });
     }

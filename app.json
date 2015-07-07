@@ -164,6 +164,9 @@
         },
         {
             "path": "resources/css/loader.css"
+        },
+        {
+            "path": "resources/css/override.css"
         }
     ],
 

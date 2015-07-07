@@ -1,45 +1,123 @@
 //Created by Shiyang Fei on 12/23/2014
 Ext.define('SevenAdmin.Utils', {
     singleton: true,
+    requires: [
+        'SevenAdmin.Constants'
+    ],
 
-    priceRenderer: function (v, m, r, rowIndex, colIndex, store, view) {
-        m.style = '';
-        return Ext.util.Format.number(v, '0.00');
+    getLocalCredential: function (name) {
+        var data = Ext.getStore('LoginLocal').getAt(0);
+        if (data) {
+            return data.get(name);
+        }
     },
 
-    priceChangeRenderer: function (v, m, r, rowIndex, colIndex, store, view) {
-        var negative = v < 0;
-        if (negative) {
-            m.style = 'color:#BA0000;';
+    getCredential: function (name) {
+        var data = Ext.getStore('LoginSession').getAt(0);
+        if (data) {
+            return data.get(name);
+        }
+    },
+
+    clearAllSession: function () {
+        Ext.getStore('LoginLocal').removeAll();
+        Ext.getStore('LoginSession').removeAll();
+    },
+
+    capitalize: function (s) {
+        return s[0].toUpperCase() + s.slice(1);
+    },
+
+    validateForm: function (form, modelCls, showError) {
+        var me = this,
+            error = Ext.create(modelCls, form.getValues()).validate();
+        if (error.isValid()) {
+            return true;
         } else {
-            m.style = 'color:#008000;';
+            if (showError) {
+                var errorText = '';
+                Ext.each(error.items, function (e) {
+                    errorText += me.capitalize(e.getField()) + ' ' + e.getMessage() + '<br>';
+                });
+                if (errorText.length > 0) {
+                    Ext.Msg.alert('Warning', errorText);
+                }
+            }
+            return false;
         }
-        return Ext.util.Format.number(v, '0.00');
     },
 
-    priceChangePercentageRenderer: function (v, m, r, rowIndex, colIndex, store, view) {
-        var negative = v < 0;
-        if (negative) {
-            m.style = 'color:#BA0000;';
-        } else {
-            m.style = 'color:#008000;';
+    switchView: function (targetXtype, targetQueryString, parentComponentId, animation) {
+        var target = Ext.ComponentQuery.query(targetQueryString || '')[0] ?
+            Ext.ComponentQuery.query(targetQueryString)[0] :
+            Ext.createByAlias(targetXtype);
+        if (parentComponentId) {
+            target.parentComponentId = parentComponentId;
         }
-        return Ext.util.Format.number(v * 100, '0.00%');
+        Ext.Viewport.animateActiveItem(target, animation || 'fade');
+        return target;
     },
 
-    largeIntRenderer: function (v, m, r, rowIndex, colIndex, store, view) {
-        var negative = v < 0;
-        m.style = '';
-        if (negative) {
-            m.style = m.style + 'color:#BA0000';
+    logOut: function () {
+        var me = this;
+        SevenAdmin.Ajax.request({
+            url: '/admin/logout',
+            scope: me,
+            params: Ext.JSON.encode({
+                userId: me.getCredential('userId')
+            }),
+            successFn: function (response) {
+                Ext.ComponentQuery.query('app-main')[0].getEl().fadeOut({
+                    duration: 1000
+                });
+                Ext.create('Ext.util.DelayedTask', function () {
+                    window.location.reload();
+                }).delay(1000);
+            }
+        });
+        me.clearAllSession();
+    },
+
+    onFormSubmissionFailure: function (form, r) {
+        Ext.Msg.alert('Error', 'Submission failed');
+    },
+
+    getAPIUrl: function (url) {
+        return SevenAdmin.Constants.apiUrlPrefix + url;
+    },
+
+    getStoreProxy: function (url, localStore) {
+        return {
+            type: 'ajax',
+            actionMethods: {
+                read: 'POST',
+                write: 'POST',
+                edit: 'POST',
+                delete: 'POST'
+            },
+            useDefaultXhrHeader: false,
+            url: localStore ? url : this.getAPIUrl(url),
+            reader: {
+                type: 'json',
+                rootProperty: 'data'
+            }
         }
-        if (v >= 1000000000)
-            return Ext.util.Format.number(v / 1000000000, this.format || '0,000.000') + 'bn';
-        else if (v >= 1000000)
-            return Ext.util.Format.number(v / 1000000, this.format || '0,000.000') + 'm';
-        else if (v >= 1000)
-            return Ext.util.Format.number(v / 1000, this.format || '0,000.000') + 'k';
-        else
-            return Ext.util.Format.number(v, '0,000');
+    },
+
+    getJsonDataProxy: function (url, localStore) {
+        return {
+            type: 'ajax',
+            useDefaultXhrHeader: false,
+            url: url
+        }
+    },
+
+    isJson: function (str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 });

@@ -15,7 +15,12 @@ Ext.define('SevenAdmin.view.main.MainViewController', {
 
     onNavigationItemClick: function (dataview, record, item, index, e, eOpts) {
         var me = this;
-        me.switchView(record.get('view'), record.get('title'));
+        if (record.get('view')) {
+            me.switchView(record.get('view'), record.get('title'));
+        }
+        if (record.get('action') && record.get('action') == 'logout') {
+            SevenAdmin.Utils.logOut();
+        }
     },
 
     switchView: function (viewName, title) {

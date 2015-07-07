@@ -16,7 +16,7 @@ Ext.define('SevenAdmin.view.launch.Launch', {
             region: 'center',
             layout: 'card',
             xtype: 'container',
-            activeItem: 'main',
+            activeItem: 'login',
             items: [
                 {
                     xtype: 'app-main',
