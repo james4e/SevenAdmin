@@ -119,5 +119,9 @@ Ext.define('SevenAdmin.Utils', {
             return false;
         }
         return true;
+    },
+
+    getImageUrl: function (fileName, category) {
+        return 'http://' + SevenAdmin.Env.serverIP + ':8081' + ((category ? ('/' + category) : '') + '/' + fileName);
     }
 });

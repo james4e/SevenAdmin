@@ -15,30 +15,41 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         },
         'form button#approve': {
             'click': 'onFormApprove'
+        },
+        'gridpanel button#new': {
+            'click': 'onGridNew'
+        },
+        'fileuploadfield[name="profileImage"]': {
+            'change': 'onProfileImageChanged'
         }
     },
 
     onGridRowSelect: function (grid, record, tr, rowIndex, e, eOpts) {
         var form = this.view.down('form');
         form.up('c-panel').getViewModel().set('form', record.data);
-        form.up('c-panel').getViewModel().set('header', record.data.name || 'New');
+        form.up('c-panel').getViewModel().set('imageHtml', this.getImageHtml(record.get('profileImage')));
+        form.up('c-panel').updateTitle(record.get('name') || 'New');
         form.getForm().setValues(record.data);
+    },
+
+    getImageHtml: function (image) {
+        var url = image ? SevenAdmin.Utils.getImageUrl(image, 'profile') : 'resources/images/unknown-user.png',
+            backgroundUrl = 'url(' + url + ')';
+        return '<div class="image-preview center-block" style="background-image:' + backgroundUrl + '"></div>';
     },
 
     onFormSubmit: function (btn) {
         var me = this,
-            form = btn.up('form'),
-            formData = form.getForm().getValues();
-        SevenAdmin.Ajax.request({
-            url: '/admin/teacher',
-            scope: me,
-            params: Ext.apply(formData, {
-                action: 'edit'
-            }),
-            successFn: function (response) {
-                me.onFormActionSuccess('updated');
-            }
-        });
+            form = btn.up('form');
+        if (form.isValid()) {
+            form.submit({
+                url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
+                waitMsg: 'Submitting mentor information',
+                success: function (fp, o) {
+                    me.onFormActionSuccess('submitted'); //TODO: Needs change
+                }
+            });
+        }
     },
 
     onFormDelete: function (btn) {
@@ -76,6 +87,16 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         });
     },
 
+    onGridNew: function (btn) {
+        var grid = btn.up('gridpanel');
+        var r = Ext.create('SevenAdmin.model.instructor.InstructorModel', {
+            name: 'New Mentor',
+            approved: false,
+            signupDate: new Date()
+        });
+        grid.getStore().insert(0, r);
+    },
+
     onFormActionSuccess: function (actionName) {
         var grid = this.view.down('gridpanel');
         grid.getStore().load();
@@ -85,5 +106,16 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
             width: 200,
             align: 't'
         });
+    },
+
+    onProfileImageChanged: function (field, value, eOpts) {
+        var inputElement = field.getEl().down('input[type="file"]'),
+            file = inputElement.dom.files[0],
+            previewBox = field.up('form').getEl().down('.image-preview'),
+            reader = new FileReader();
+        reader.onload = function (e) {
+            previewBox.setStyle('background-image', 'url(' + e.target.result + ')')
+        };
+        reader.readAsDataURL(file);
     }
 });

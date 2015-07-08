@@ -94,6 +94,16 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                             }
                         }
                     ]
+                },
+                dockedItems: {
+                    xtype: 'toolbar',
+                    items: [
+                        {
+                            xtype: 'button',
+                            text: 'New',
+                            itemId: 'new'
+                        }
+                    ]
                 }
             }
         ];

@@ -6,12 +6,11 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
     extend: 'SevenAdmin.component.Panel',
     xtype: 'instructor-form-panel',
     autoScroll: true,
-    bind: {
-        title: '{header}'
-    },
+    title: 'Mentor Detail',
     viewModel: {
         data: {
-            header: 'Mentor'
+            header: 'Mentor',
+            imageHtml: '<div class="image-preview center-block" style="background-image:url(resources/images/unknown-user.png)"></div>'
         }
     },
     requires: [
@@ -34,10 +33,29 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
             defaultType: 'textfield',
             items: [
                 {
+                    xtype: 'container',
+                    items: [
+                        {
+                            xtype: 'container',
+                            bind: {
+                                html: '{imageHtml}'
+                            }
+                        }
+                    ]
+                },
+                {
+                    xtype: 'fileuploadfield',
+                    name: 'profileImage',
+                    buttonOnly: true,
+                    hideLabel: true,
+                    buttonText: 'Update Profile Image'
+                },
+                {
                     fieldLabel: 'Approved',
                     xtype: 'displayfield',
                     name: 'approved',
                     allowBlank: false,
+                    maxWidth: 300,
                     renderer: function (v) {
                         return v === true ? 'YES' : 'NO';
                     }
@@ -99,11 +117,13 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                 },
                 {
                     fieldLabel: 'Description',
+                    xtype: 'textarea',
                     name: 'description'
                 },
                 {
                     fieldLabel: 'ID',
                     xtype: 'displayfield',
+                    submitValue: true,
                     name: 'teacherId'
                 },
                 {
@@ -111,10 +131,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     xtype: 'displayfield',
                     name: 'signupDate',
                     renderer: Ext.util.Format.dateRenderer('Y-m-d')
-                },
-                {
-                    fieldLabel: 'Profile Image',
-                    name: 'profileImage'
                 }
             ],
 
