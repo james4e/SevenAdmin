@@ -5,7 +5,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
     extend: 'SevenAdmin.component.Panel',
     xtype: 'instructor-grid-panel',
     autoScroll: true,
-    title: 'Instructor Summary',
+    title: 'Mentor Summary',
     requires: [
         'SevenAdmin.store.instructor.InstructorStore',
         'Ext.grid.Panel'
@@ -21,8 +21,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                 autoLoadStore: true,
                 columns: {
                     defaults: {
-                        flex: 1,
-                        minWidth: 100
+                        width: 100
                     },
                     items: [
                         {
@@ -34,8 +33,62 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                             dataIndex: 'email'
                         },
                         {
+                            text: 'School',
+                            dataIndex: 'school'
+                        },
+                        {
+                            text: 'Majors',
+                            dataIndex: 'majors'
+                        },
+                        {
+                            text: 'Subjects',
+                            dataIndex: 'subjects'
+                        },
+                        {
+                            text: 'Degree',
+                            dataIndex: 'degree'
+                        },
+                        {
+                            text: 'Phone',
+                            dataIndex: 'phone'
+                        },
+                        {
+                            text: 'QQ',
+                            dataIndex: 'qq'
+                        },
+                        {
+                            text: 'Weixin',
+                            dataIndex: 'weixin'
+                        },
+                        {
+                            text: 'Country',
+                            dataIndex: 'country'
+                        },
+                        {
+                            text: 'State',
+                            dataIndex: 'state'
+                        },
+                        {
+                            text: 'Zip',
+                            dataIndex: 'zip'
+                        },
+                        {
+                            text: 'Description',
+                            dataIndex: 'description'
+                        },
+                        {
+                            text: 'ID',
+                            dataIndex: 'teacherId'
+                        },
+                        {
+                            text: 'Sign Up Date',
+                            dataIndex: 'signupDate',
+                            renderer: Ext.util.Format.dateRenderer('Y-m-d')
+                        },
+                        {
                             text: 'Approved',
                             dataIndex: 'approved',
+                            locked: true,
                             renderer: function (v) {
                                 return v === true ? 'YES' : 'NO';
                             }

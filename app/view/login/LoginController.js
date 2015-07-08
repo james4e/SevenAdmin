@@ -52,6 +52,7 @@ Ext.define('SevenAdmin.view.login.LoginController', {
     },
 
     clearLoginView: function () {
+        this.view.parentView.destroy();
         this.view.destroy();
     }
 });

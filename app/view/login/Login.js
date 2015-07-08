@@ -21,6 +21,7 @@ Ext.define('SevenAdmin.view.login.Login', {
         Ext.create('Ext.window.Window', {
             title: 'Login',
             controller: 'login',
+            parentView: this,
             reference: 'window',
             bodyPadding: 10,
             closable: false,

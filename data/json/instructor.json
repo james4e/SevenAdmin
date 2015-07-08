@@ -4,6 +4,7 @@
         "email": "sfei@me.com",
         "approved": false,
         "lastName": "On",
-        "name": "Shiyang Fei"
+        "name": "Shiyang Fei",
+        "teacherId": 32
     }
 ]

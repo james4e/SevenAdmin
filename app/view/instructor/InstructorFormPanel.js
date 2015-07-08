@@ -6,7 +6,14 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
     extend: 'SevenAdmin.component.Panel',
     xtype: 'instructor-form-panel',
     autoScroll: true,
-    title: 'Instructor Detail',
+    bind: {
+        title: '{header}'
+    },
+    viewModel: {
+        data: {
+            header: 'Mentor'
+        }
+    },
     requires: [
         'SevenAdmin.store.instructor.InstructorStore',
         'Ext.grid.Panel'
@@ -27,17 +34,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
             defaultType: 'textfield',
             items: [
                 {
-                    fieldLabel: 'ID',
-                    xtype: 'displayfield',
-                    name: 'teacherId'
-                },
-                {
-                    fieldLabel: 'Sign Up Date',
-                    xtype: 'displayfield',
-                    name: 'signupDate',
-                    renderer: Ext.util.Format.dateRenderer('Y-m-d')
-                },
-                {
                     fieldLabel: 'Approved',
                     xtype: 'displayfield',
                     name: 'approved',
@@ -57,30 +53,9 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     allowBlank: false
                 },
                 {
-                    fieldLabel: 'Phone',
-                    name: 'phone'
-                },
-                {
                     fieldLabel: 'School',
                     xtype: 'school-combo',
                     name: 'school'
-                },
-                {
-                    fieldLabel: 'Degree',
-                    xtype: 'degree-combo',
-                    name: 'degree'
-                },
-                {
-                    fieldLabel: 'QQ',
-                    name: 'qq'
-                },
-                {
-                    fieldLabel: 'Weixin',
-                    name: 'weixin'
-                },
-                {
-                    fieldLabel: 'Description',
-                    name: 'description'
                 },
                 {
                     fieldLabel: 'Majors',
@@ -91,6 +66,23 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Subjects',
                     xtype: 'subjects-tag',
                     name: 'subjects'
+                },
+                {
+                    fieldLabel: 'Degree',
+                    xtype: 'degree-combo',
+                    name: 'degree'
+                },
+                {
+                    fieldLabel: 'Phone',
+                    name: 'phone'
+                },
+                {
+                    fieldLabel: 'QQ',
+                    name: 'qq'
+                },
+                {
+                    fieldLabel: 'Weixin',
+                    name: 'weixin'
                 },
                 {
                     fieldLabel: 'Country',
@@ -106,6 +98,21 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     name: 'zip'
                 },
                 {
+                    fieldLabel: 'Description',
+                    name: 'description'
+                },
+                {
+                    fieldLabel: 'ID',
+                    xtype: 'displayfield',
+                    name: 'teacherId'
+                },
+                {
+                    fieldLabel: 'Sign Up Date',
+                    xtype: 'displayfield',
+                    name: 'signupDate',
+                    renderer: Ext.util.Format.dateRenderer('Y-m-d')
+                },
+                {
                     fieldLabel: 'Profile Image',
                     name: 'profileImage'
                 }
@@ -113,16 +120,22 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
 
             buttons: [
                 {
-                    text: 'Delete'
+                    text: 'Delete',
+                    itemId: 'delete'
                 },
                 {
                     xtype: 'tbfill'
                 },
                 {
-                    text: 'Approve'
+                    text: 'Approve',
+                    itemId: 'approve',
+                    bind: {
+                        disabled: '{form.approved}'
+                    }
                 },
                 {
                     text: 'Submit',
+                    itemId: 'submit',
                     formBind: true,
                     disabled: true
 
