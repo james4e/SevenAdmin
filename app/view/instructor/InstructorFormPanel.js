@@ -81,6 +81,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Majors',
                     xtype: 'majors-tag',
                     name: 'majors',
+                    allowBlank: false,
                     displayField: 'text',
                     valueField: 'text'
                 },
@@ -88,6 +89,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Subjects',
                     xtype: 'subjects-tag',
                     name: 'subjects',
+                    allowBlank: false,
                     displayField: 'text',
                     valueField: 'text'
                 },
@@ -143,7 +145,8 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
             buttons: [
                 {
                     text: 'Delete',
-                    itemId: 'delete'
+                    itemId: 'delete',
+                    tooltip: 'Cancel the membership of this mentor. He will not be displayed to students any more.'
                 },
                 {
                     xtype: 'tbfill'
@@ -151,6 +154,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                 {
                     text: 'Approve',
                     itemId: 'approve',
+                    tooltip: 'Approve a mentor. Mentor will only be displayed in our web after approval.',
                     bind: {
                         disabled: '{form.approved}'
                     }

@@ -25,6 +25,13 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                     },
                     items: [
                         {
+                            text: 'Approved',
+                            dataIndex: 'approved',
+                            renderer: function (v) {
+                                return v === true ? 'YES' : 'NO';
+                            }
+                        },
+                        {
                             text: 'Name',
                             dataIndex: 'name'
                         },
@@ -84,13 +91,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                             text: 'Sign Up Date',
                             dataIndex: 'signupDate',
                             renderer: Ext.util.Format.dateRenderer('Y-m-d')
-                        },
-                        {
-                            text: 'Approved',
-                            dataIndex: 'approved',
-                            renderer: function (v) {
-                                return v === true ? 'YES' : 'NO';
-                            }
                         }
                     ]
                 },

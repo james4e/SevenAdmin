@@ -76,20 +76,19 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
 
     onFormApprove: function (btn) {
         var me = this,
-            form = btn.up('form'),
-            formData = form.getForm().getValues();
-        SevenAdmin.Ajax.request({
-            url: '/admin/teacher',
-            scope: me,
-            params: {
-                action: 'edit',
-                teacherId: formData.teacherId,
-                approved: true
-            },
-            successFn: function (response) {
-                me.onFormActionSuccess('approved');
-            }
-        });
+            form = btn.up('form');
+        if (form.isValid()) {
+            form.submit({
+                url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
+                params: {
+                    action: action
+                },
+                waitMsg: 'Submitting mentor information',
+                success: function (fp, o) {
+                    me.onFormActionSuccess('submitted'); //TODO: Needs change
+                }
+            });
+        }
     },
 
     onGridNew: function (btn) {
