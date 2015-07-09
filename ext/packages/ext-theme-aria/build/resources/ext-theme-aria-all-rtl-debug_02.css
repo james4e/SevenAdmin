@@ -1,3 +1,93 @@
+/* line 151, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+.x-breadcrumb-default-vertical-scroller .x-box-scroller-body-vertical {
+  margin-top: 24px; }
+
+/* line 156, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+.x-box-scroller-breadcrumb-default {
+  cursor: pointer;
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
+  opacity: 0.6; }
+  /* line 165, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-hover {
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=80);
+    opacity: 0.8; }
+  /* line 171, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-pressed {
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+    opacity: 1; }
+  /* line 177, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-disabled {
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=25);
+    opacity: 0.25;
+    cursor: default; }
+  /* line 188, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-left, .x-box-scroller-breadcrumb-default.x-box-scroller-right {
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    margin-top: -8px; }
+  /* line 214, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-left {
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-bottom: 0;
+    background-image: url(images/breadcrumb/default-scroll-left.png); }
+  /* line 237, ../../../ext-theme-neutral/sass/src/layout/container/Box.scss */
+  .x-box-scroller-breadcrumb-default.x-box-scroller-right {
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-bottom: 0;
+    background-image: url(images/breadcrumb/default-scroll-right.png); }
+
+/* line 1, ../../../ext-theme-neutral/sass/src/tree/ViewDropZone.scss */
+.x-tree-drop-ok-append .x-dd-drop-icon {
+  background-image: url(images/tree/drop-append.png); }
+
+/* line 5, ../../../ext-theme-neutral/sass/src/tree/ViewDropZone.scss */
+.x-tree-drop-ok-above .x-dd-drop-icon {
+  background-image: url(images/tree/drop-above.png); }
+
+/* line 9, ../../../ext-theme-neutral/sass/src/tree/ViewDropZone.scss */
+.x-tree-drop-ok-below .x-dd-drop-icon {
+  background-image: url(images/tree/drop-below.png); }
+
+/* line 13, ../../../ext-theme-neutral/sass/src/tree/ViewDropZone.scss */
+.x-tree-drop-ok-between .x-dd-drop-icon {
+  background-image: url(images/tree/drop-between.png); }
+
+/* line 17, ../../../ext-theme-neutral/sass/src/tree/ViewDropZone.scss */
+.x-tree-ddindicator {
+  height: 1px;
+  border-width: 1px 0px 0px;
+  border-style: dotted;
+  border-color: green; }
+
+/* line 1, ../../../ext-theme-neutral/sass/src/view/MultiSelector.scss */
+.x-multiselector-remove {
+  font-size: 100%;
+  color: #e1e1e1;
+  cursor: pointer; }
+  /* line 6, ../../../ext-theme-neutral/sass/src/view/MultiSelector.scss */
+  .x-multiselector-remove .x-grid-cell-inner {
+    padding: 5px 10px 4px 10px; }
+
+/* line 11, ../../../ext-theme-neutral/sass/src/view/MultiSelector.scss */
+.x-grid-item-over .x-multiselector-remove {
+  color: red; }
+
+/* line 1, ../../../ext-theme-neutral/sass/src/window/Toast.scss */
+.x-toast-icon-information {
+  background-image: url(images/window/toast/icon16_info.png); }
+
+/* line 5, ../../../ext-theme-neutral/sass/src/window/Toast.scss */
+.x-toast-icon-error {
+  background-image: url(images/window/toast/icon16_error.png); }
+
+/* Using standard theme */
+/* line 11, ../../../ext-theme-neutral/sass/src/window/Toast.scss */
+.x-toast-window .x-window-body {
+  padding: 15px 5px 15px 5px; }
+
 /* Custom styling */
 /* line 17, ../../../ext-theme-neutral/sass/src/window/Toast.scss */
 .x-toast-light .x-window-header {
@@ -167,6 +257,17 @@ tr.x-grid-subtable-row {
   .x-panel-header-title-light > .x-title-text-light {
     text-transform: none;
     padding: 0; }
+    /* line 374, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light > .x-title-text-light:after {
+      content: 'Ext JS Trial';
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #b1b1b2; }
+    /* line 385, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light > .x-title-text-light.x-rtl:after {
+      right: auto;
+      left: 0; }
   /* line 412, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
   .x-panel-header-title-light > .x-title-icon-wrap-light.x-title-icon-top {
     height: 22px;
@@ -491,6 +592,17 @@ tr.x-grid-subtable-row {
   .x-panel-header-title-light-framed > .x-title-text-light-framed {
     text-transform: none;
     padding: 0; }
+    /* line 374, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light-framed > .x-title-text-light-framed:after {
+      content: 'Ext JS Trial';
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #b1b1b2; }
+    /* line 385, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light-framed > .x-title-text-light-framed.x-rtl:after {
+      right: auto;
+      left: 0; }
   /* line 412, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
   .x-panel-header-title-light-framed > .x-title-icon-wrap-light-framed.x-title-icon-top {
     height: 22px;

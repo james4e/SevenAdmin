@@ -88,7 +88,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                         {
                             text: 'Approved',
                             dataIndex: 'approved',
-                            locked: true,
                             renderer: function (v) {
                                 return v === true ? 'YES' : 'NO';
                             }

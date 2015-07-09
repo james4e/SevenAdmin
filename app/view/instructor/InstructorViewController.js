@@ -29,6 +29,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         form.up('c-panel').getViewModel().set('form', record.data);
         form.up('c-panel').getViewModel().set('imageHtml', this.getImageHtml(record.get('profileImage')));
         form.up('c-panel').updateTitle(record.get('name') || 'New');
+        form.getForm().reset();
         form.getForm().setValues(record.data);
     },
 
@@ -96,7 +97,9 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         var r = Ext.create('SevenAdmin.model.instructor.InstructorModel', {
             name: 'New Mentor',
             approved: false,
-            signupDate: new Date()
+            signupDate: new Date(),
+            majors: [],
+            subjects: []
         });
         grid.getStore().insert(0, r);
     },

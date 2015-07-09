@@ -1,3 +1,131 @@
+/* line 16, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-r {
+  border-right-color: white !important;
+  border-right-width: 1px !important; }
+
+/* line 20, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-rl {
+  border-right-color: white !important;
+  border-right-width: 1px !important;
+  border-left-color: white !important;
+  border-left-width: 1px !important; }
+
+/* line 26, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-rb {
+  border-right-color: white !important;
+  border-right-width: 1px !important;
+  border-bottom-color: white !important;
+  border-bottom-width: 1px !important; }
+
+/* line 32, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-rbl {
+  border-right-color: white !important;
+  border-right-width: 1px !important;
+  border-bottom-color: white !important;
+  border-bottom-width: 1px !important;
+  border-left-color: white !important;
+  border-left-width: 1px !important; }
+
+/* line 40, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-t {
+  border-top-color: white !important;
+  border-top-width: 1px !important; }
+
+/* line 44, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-tl {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-left-color: white !important;
+  border-left-width: 1px !important; }
+
+/* line 50, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-tb {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-bottom-color: white !important;
+  border-bottom-width: 1px !important; }
+
+/* line 56, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-tbl {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-bottom-color: white !important;
+  border-bottom-width: 1px !important;
+  border-left-color: white !important;
+  border-left-width: 1px !important; }
+
+/* line 64, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-tr {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-right-color: white !important;
+  border-right-width: 1px !important; }
+
+/* line 70, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-trl {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-right-color: white !important;
+  border-right-width: 1px !important;
+  border-left-color: white !important;
+  border-left-width: 1px !important; }
+
+/* line 78, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-trb {
+  border-top-color: white !important;
+  border-top-width: 1px !important;
+  border-right-color: white !important;
+  border-right-width: 1px !important;
+  border-bottom-color: white !important;
+  border-bottom-width: 1px !important; }
+
+/* line 86, ../../../ext-theme-base/sass/etc/mixins/border-management.scss */
+.x-panel-light-outer-border-trbl {
+  border-color: white !important;
+  border-width: 1px !important; }
+
+/* line 256, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-light-framed {
+  border-color: white;
+  padding: 0; }
+
+/* line 262, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-header-light-framed {
+  font-size: 13px;
+  border: 1px solid white; }
+  /* line 269, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+  .x-panel-header-light-framed .x-tool-img {
+    background-image: url(images/tools/tool-sprites-dark.png);
+    background-color: white; }
+
+/* line 282, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-header-light-framed-horizontal {
+  padding: 9px 9px 9px 9px; }
+  /* line 286, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+  .x-panel-header-light-framed-horizontal .x-panel-header-light-framed-tab-bar {
+    margin-top: -9px;
+    margin-bottom: -9px; }
+
+/* line 294, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-header-light-framed-horizontal.x-header-noborder {
+  padding: 10px 10px 9px 10px; }
+  /* line 298, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+  .x-panel-header-light-framed-horizontal.x-header-noborder .x-panel-header-light-framed-tab-bar {
+    margin-top: -10px;
+    margin-bottom: -9px; }
+
+/* line 306, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-header-light-framed-vertical {
+  padding: 9px 9px 9px 9px; }
+  /* line 310, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+  .x-panel-header-light-framed-vertical .x-panel-header-light-framed-tab-bar {
+    margin-right: -9px;
+    margin-left: -9px; }
+
+/* line 318, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+.x-panel-header-light-framed-vertical.x-header-noborder {
+  padding: 10px 10px 10px 9px; }
+  /* line 322, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
   .x-panel-header-light-framed-vertical.x-header-noborder .x-panel-header-light-framed-tab-bar {
     margin-right: -10px;
     margin-left: -9px; }
@@ -29,6 +157,17 @@
   .x-panel-header-title-light-framed > .x-title-text-light-framed {
     text-transform: none;
     padding: 0; }
+    /* line 374, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light-framed > .x-title-text-light-framed:after {
+      content: 'Ext JS Trial';
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #999999; }
+    /* line 385, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
+    .x-panel-header-title-light-framed > .x-title-text-light-framed.x-rtl:after {
+      right: auto;
+      left: 0; }
   /* line 412, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
   .x-panel-header-title-light-framed > .x-title-icon-wrap-light-framed.x-title-icon-top {
     height: 22px;
