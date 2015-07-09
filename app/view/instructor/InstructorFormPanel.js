@@ -57,7 +57,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Approved',
                     xtype: 'displayfield',
                     name: 'approved',
-                    allowBlank: false,
                     maxWidth: 300,
                     renderer: function (v) {
                         return v === true ? 'YES' : 'NO';
@@ -65,13 +64,28 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                 },
                 {
                     fieldLabel: 'Name',
-                    name: 'name',
-                    allowBlank: false
+                    name: 'name'
                 },
                 {
                     fieldLabel: 'Email',
                     name: 'email',
-                    allowBlank: false
+                    vtype: 'email'
+                },
+                {
+                    fieldLabel: 'Password',
+                    name: 'password',
+                    inputType: 'password',
+                    vtype: 'password',
+                    itemId: 'password',
+                    submitValue: false
+                },
+                {
+                    fieldLabel: 'Verify',
+                    name: 'verify',
+                    inputType: 'password',
+                    vtype: 'password',
+                    initialPassField: 'password',
+                    submitValue: false
                 },
                 {
                     fieldLabel: 'School',
@@ -84,7 +98,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Majors',
                     xtype: 'majors-tag',
                     name: 'majors',
-                    allowBlank: false,
                     displayField: 'text',
                     valueField: 'text',
                     submitValue: false
@@ -93,7 +106,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     fieldLabel: 'Subjects',
                     xtype: 'subjects-tag',
                     name: 'subjects',
-                    allowBlank: false,
                     displayField: 'text',
                     valueField: 'text',
                     submitValue: false

@@ -21,6 +21,14 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         },
         'fileuploadfield[name="profileImage"]': {
             'change': 'onProfileImageChanged'
+        },
+        'form textfield[name="password"]': {
+            'validitychange': function (field) {
+                field.next().validate();
+            },
+            'blur': function (field) {
+                field.next().validate();
+            }
         }
     },
 
@@ -47,7 +55,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
             majors = form.down('majors-tag').getValue(),
             subjects = form.down('subjects-tag').getValue();
         if (form.isValid()) {
-            form.getForm().submit({
+            SevenAdmin.Utils.submitForm(form, {
                 url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
                 params: {
                     action: action,
@@ -55,9 +63,10 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
                     subjects: Ext.encode(subjects)
                 },
                 waitMsg: 'Submitting mentor information',
-                callback: function (fp, o) {
-                    me.onFormActionSuccess('submitted'); //TODO: Needs change
-                }
+                callback: function (res, o) {
+                    form.up('c-view').down('gridpanel').getStore().load();
+                },
+                scope: me
             });
         }
     },
@@ -66,17 +75,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         var me = this,
             form = btn.up('form');
         if (form.isValid()) {
-            form.getForm().submit({
-                url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
-                params: {
-                    action: 'edit',
-                    approved: false
-                },
-                waitMsg: 'Submitting mentor information',
-                success: function (fp, o) {
-                    me.onFormActionSuccess('submitted'); //TODO: Needs change
-                }
-            });
+            me.changeMentorApprovedStatus(form, false)
         }
     },
 
@@ -84,18 +83,24 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         var me = this,
             form = btn.up('form');
         if (form.isValid()) {
-            form.getForm().submit({
-                url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
-                params: {
-                    action: 'edit',
-                    approved: true
-                },
-                waitMsg: 'Submitting mentor information',
-                success: function (fp, o) {
-                    me.onFormActionSuccess('submitted'); //TODO: Needs change
-                }
-            });
+            me.changeMentorApprovedStatus(form, true)
         }
+    },
+
+    changeMentorApprovedStatus: function (form, approved) {
+        var me = this;
+        SevenAdmin.Utils.submitForm(form, {
+            url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
+            params: {
+                action: 'edit',
+                approved: approved
+            },
+            waitMsg: 'Submitting mentor information',
+            callback: function (res, o) {
+                form.up('c-view').down('gridpanel').getStore().load();
+            },
+            scope: me
+        });
     },
 
     onGridNew: function (btn) {

@@ -123,5 +123,45 @@ Ext.define('SevenAdmin.Utils', {
 
     getImageUrl: function (fileName, category) {
         return 'http://' + SevenAdmin.Env.serverIP + ':8081' + ((category ? ('/' + category) : '') + '/' + fileName);
+    },
+
+    submitForm: function (form, config) {
+        form.getForm().submit({
+            url: config.url,
+            params: config.params,
+            waitMsg: config.waitMsg,
+            success: function (fp, o) {
+                var res = o.responseText;
+                if (SevenAdmin.Utils.isJson(o.responseText)) {
+                    res = Ext.decode(o.responseText);
+                    if (res.success) {
+                        Ext.callback(config.success, config.scope || this, [res, o]);
+                    } else {
+                        SevenAdmin.Utils.handleFormFailure(res, o, config);
+                    }
+                } else {
+                    SevenAdmin.Utils.handleFormFailure(null, o, config);
+                }
+                SevenAdmin.Utils.handleFormCallback(null, o, config);
+            },
+            failure: function (fp, o) {
+                SevenAdmin.Utils.handleFormFailure(null, o, config);
+                SevenAdmin.Utils.handleFormCallback(null, o, config);
+            }
+        });
+    },
+
+    handleFormFailure: function (res, o, config) {
+        if (config.failure) {
+            Ext.callback(config.failure, config.scope || this, [res, o]);
+        } else {
+            console.log('Form submission failed: ' + config.url);
+        }
+    },
+
+    handleFormCallback: function (res, o, config) {
+        if (config.callback) {
+            Ext.callback(config.callback, config.scope || this, [res, o]);
+        }
     }
 });

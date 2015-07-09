@@ -30,7 +30,8 @@ Ext.define('SevenAdmin.view.admin.Admin', {
                             autoLoadStore: true,
                             columns: {
                                 defaults: {
-                                    width: 100
+                                    flex: 1,
+                                    minWidth: 100
                                 },
                                 items: [
                                     {

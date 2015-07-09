@@ -33,23 +33,28 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                         },
                         {
                             text: 'Name',
-                            dataIndex: 'name'
+                            dataIndex: 'name',
+                            width: 200
                         },
                         {
                             text: 'Email',
-                            dataIndex: 'email'
+                            dataIndex: 'email',
+                            width: 200
                         },
                         {
                             text: 'School',
-                            dataIndex: 'school'
+                            dataIndex: 'school',
+                            width: 200
                         },
                         {
                             text: 'Majors',
-                            dataIndex: 'majors'
+                            dataIndex: 'majors',
+                            width: 200
                         },
                         {
                             text: 'Subjects',
-                            dataIndex: 'subjects'
+                            dataIndex: 'subjects',
+                            width: 200
                         },
                         {
                             text: 'Degree',

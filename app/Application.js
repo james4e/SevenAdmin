@@ -12,7 +12,8 @@ Ext.define('SevenAdmin.Application', {
         'SevenAdmin.Ajax',
         'SevenAdmin.Env',
         'SevenAdmin.Constants',
-        'SevenAdmin.Utils'
+        'SevenAdmin.Utils',
+        'SevenAdmin.override.VTypes'
     ],
     stores: [
         'main.LoginLocalStore',
