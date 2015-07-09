@@ -10,7 +10,8 @@ Ext.define('SevenAdmin.view.main.MainViewController', {
     requires: [
         'SevenAdmin.component.ConstructionPanel',
         'SevenAdmin.view.student.StudentManagement',
-        'SevenAdmin.view.instructor.InstructorManagement'
+        'SevenAdmin.view.instructor.InstructorManagement',
+        'SevenAdmin.view.admin.Admin'
     ],
 
     onNavigationItemClick: function (dataview, record, item, index, e, eOpts) {

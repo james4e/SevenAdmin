@@ -86,7 +86,8 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     name: 'majors',
                     allowBlank: false,
                     displayField: 'text',
-                    valueField: 'text'
+                    valueField: 'text',
+                    submitValue: false
                 },
                 {
                     fieldLabel: 'Subjects',
@@ -94,7 +95,8 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                     name: 'subjects',
                     allowBlank: false,
                     displayField: 'text',
-                    valueField: 'text'
+                    valueField: 'text',
+                    submitValue: false
                 },
                 {
                     fieldLabel: 'Degree',

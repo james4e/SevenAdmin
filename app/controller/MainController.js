@@ -9,8 +9,9 @@ Ext.define('SevenAdmin.controller.MainController', {
     },
 
     onAutoLoadStoreComponentRender: function (cmp, eOpts) {
-        if (cmp.getStore()) {
-            cmp.getStore().load();
+        var store = cmp.getStore(), params;
+        if (store) {
+            store.load();
         }
     }
 });

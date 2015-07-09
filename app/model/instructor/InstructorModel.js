@@ -43,7 +43,7 @@ Ext.define('SevenAdmin.model.instructor.InstructorModel', {
             name: 'majors',
             convert: function (v) {
                 if (SevenAdmin.Utils.isJson(v)) {
-                    return _.pluck(Ext.decode(v), 'text')
+                    return Ext.decode(v)
                 }
             }
         },
@@ -51,7 +51,7 @@ Ext.define('SevenAdmin.model.instructor.InstructorModel', {
             name: 'subjects',
             convert: function (v) {
                 if (SevenAdmin.Utils.isJson(v)) {
-                    return _.pluck(Ext.decode(v), 'text')
+                    return Ext.decode(v)
                 }
             }
         },

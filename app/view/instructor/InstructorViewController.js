@@ -42,12 +42,35 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
     onFormSubmit: function (btn) {
         var me = this,
             form = btn.up('form'),
-            action = form.getForm().getValues().teacherId ? 'edit' : 'create';
+            values = form.getForm().getValues(),
+            action = values.teacherId ? 'edit' : 'create',
+            majors = form.down('majors-tag').getValue(),
+            subjects = form.down('subjects-tag').getValue();
         if (form.isValid()) {
-            form.submit({
+            form.getForm().submit({
                 url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
                 params: {
-                    action: action
+                    action: action,
+                    majors: Ext.encode(majors),
+                    subjects: Ext.encode(subjects)
+                },
+                waitMsg: 'Submitting mentor information',
+                callback: function (fp, o) {
+                    me.onFormActionSuccess('submitted'); //TODO: Needs change
+                }
+            });
+        }
+    },
+
+    onFormDelete: function (btn) {
+        var me = this,
+            form = btn.up('form');
+        if (form.isValid()) {
+            form.getForm().submit({
+                url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
+                params: {
+                    action: 'edit',
+                    approved: false
                 },
                 waitMsg: 'Submitting mentor information',
                 success: function (fp, o) {
@@ -57,31 +80,15 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
         }
     },
 
-    onFormDelete: function (btn) {
-        var me = this,
-            form = btn.up('form'),
-            formData = form.getForm().getValues();
-        SevenAdmin.Ajax.request({
-            url: '/admin/teacher',
-            scope: me,
-            params: {
-                action: 'delete',
-                teacherId: formData.teacherId
-            },
-            successFn: function (response) {
-                me.onFormActionSuccess('deleted');
-            }
-        });
-    },
-
     onFormApprove: function (btn) {
         var me = this,
             form = btn.up('form');
         if (form.isValid()) {
-            form.submit({
+            form.getForm().submit({
                 url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
                 params: {
-                    action: action
+                    action: 'edit',
+                    approved: true
                 },
                 waitMsg: 'Submitting mentor information',
                 success: function (fp, o) {

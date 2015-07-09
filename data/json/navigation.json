@@ -17,6 +17,11 @@
     },
     {
         "id": 4,
+        "title": "Admin Management",
+        "view": "admin"
+    },
+    {
+        "id": 5,
         "title": "Log Out",
         "action": "logout"
     }

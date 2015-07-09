@@ -5,11 +5,14 @@ Ext.define('SevenAdmin.model.main.CredentialModel', {
     extend: 'Ext.data.Model',
     fields: [
         {
-            name: 'userId'
+            name: 'userId',
+            type: 'string'
         }, {
-            name: 'roleId'
+            name: 'roleId',
+            type: 'string'
         }, {
-            name: 'name'
+            name: 'name',
+            type: 'string'
         }
     ]
 });
