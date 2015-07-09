@@ -30,10 +30,10 @@ Ext.define('Ext.overrides.util.Positionable', {
      * @param {Function} [callback] The function to call after the animation finishes
      * @return {Ext.util.Positionable} this
      */
-    anchorTo: function (anchorToEl, alignment, offsets, animate, monitorScroll, callback) {
+    anchorTo: function(anchorToEl, alignment, offsets, animate, monitorScroll, callback) {
         var me = this,
             scroll = !Ext.isEmpty(monitorScroll),
-            action = function () {
+            action = function() {
                 me.alignTo(anchorToEl, alignment, offsets, animate);
                 Ext.callback(callback, me);
             },
@@ -50,23 +50,23 @@ Ext.define('Ext.overrides.util.Positionable', {
 
         if (scroll) {
             Ext.getWin().on('scroll', action, null,
-                {buffer: !isNaN(monitorScroll) ? monitorScroll : 50});
+                    {buffer: !isNaN(monitorScroll) ? monitorScroll : 50});
         }
         action(); // align immediately
         return me;
     },
 
-    getAnchor: function () {
+    getAnchor: function(){
         var el = this.el,
             data, anchor;
-
+            
         if (!el.dom) {
             return;
         }
         data = el.getData();
         anchor = data._anchor;
 
-        if (!anchor) {
+        if(!anchor){
             anchor = data._anchor = {};
         }
         return anchor;
@@ -91,7 +91,7 @@ Ext.define('Ext.overrides.util.Positionable', {
      * Remove any anchor to this element. See {@link #anchorTo}.
      * @return {Ext.util.Positionable} this
      */
-    removeAnchor: function () {
+    removeAnchor: function() {
         var anchor = this.getAnchor();
 
         if (anchor && anchor.fn) {
@@ -113,7 +113,7 @@ Ext.define('Ext.overrides.util.Positionable', {
      * Element animation config object
      * @return {Ext.util.Positionable} this
      */
-    setBox: function (box, animate) {
+    setBox: function(box, animate) {
         var me = this;
 
         if (box.isRegion) {

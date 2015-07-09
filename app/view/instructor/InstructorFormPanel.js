@@ -73,17 +73,23 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
                 {
                     fieldLabel: 'School',
                     xtype: 'school-combo',
-                    name: 'school'
+                    name: 'school',
+                    displayField: 'text',
+                    valueField: 'text'
                 },
                 {
                     fieldLabel: 'Majors',
                     xtype: 'majors-tag',
-                    name: 'majors'
+                    name: 'majors',
+                    displayField: 'text',
+                    valueField: 'text'
                 },
                 {
                     fieldLabel: 'Subjects',
                     xtype: 'subjects-tag',
-                    name: 'subjects'
+                    name: 'subjects',
+                    displayField: 'text',
+                    valueField: 'text'
                 },
                 {
                     fieldLabel: 'Degree',

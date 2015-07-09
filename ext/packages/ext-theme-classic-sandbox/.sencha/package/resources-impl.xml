@@ -1,4 +1,4 @@
-<project name="resources-impl">
+<project name="x-resources-impl">
     <target name="-before-inherit-resources"/>
     <target name="-after-inherit-resources"/>
     <target name="-inherit-resources">
@@ -20,7 +20,7 @@
             </sequential>
         </for>
     </target>
-
+    
     <target name="-before-copy-resources"/>
     <target name="-after-copy-resources"/>
     <target name="-copy-resources">

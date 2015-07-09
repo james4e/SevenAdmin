@@ -9,7 +9,7 @@ Ext.define('Ext.overrides.GlobalEvents', {
     /**
      * @event resumelayouts
      * Fires after global layout processing has been resumed in {@link
-        * Ext.Component#resumeLayouts}.
+     * Ext.Component#resumeLayouts}.
      */
 
     /**
@@ -22,19 +22,19 @@ Ext.define('Ext.overrides.GlobalEvents', {
      * @param {Ext.event.Event} The event object
      */
 
-    attachListeners: function () {
+    attachListeners: function() {
         this.callParent();
         Ext.getDoc().on('mousedown', this.fireMouseDown, this);
     },
 
-    fireMouseDown: function (e) {
+    fireMouseDown: function(e) {
         this.fireEvent('mousedown', e);
     },
 
     deprecated: {
         5: {
             methods: {
-                addListener: function (ename, fn, scope, options) {
+                addListener: function(ename, fn, scope, options, order, caller, eventOptions) {
                     var name,
                         readyFn;
 
@@ -58,7 +58,7 @@ Ext.define('Ext.overrides.GlobalEvents', {
                         Ext.onReady(readyFn);
                     }
 
-                    this.callParent([ename, fn, scope, options]);
+                    this.callParent([ename, fn, scope, options, order, caller, eventOptions]);
                 }
             }
         }

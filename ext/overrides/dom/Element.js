@@ -46,7 +46,7 @@
  *         opt.anim.stop();
  *     }
  */
-Ext.define('Ext.overrides.dom.Element', (function () {
+Ext.define('Ext.overrides.dom.Element', (function() {
     var Element, // we cannot do this yet "= Ext.dom.Element"
         WIN = window,
         DOC = document,
@@ -69,34 +69,29 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         OFFSETCLASS = Ext.baseCSSPrefix + 'hidden-offsets',
         boxMarkup = [
             '<div class="{0}-tl" role="presentation">',
-            '<div class="{0}-tr" role="presentation">',
-            '<div class="{0}-tc" role="presentation"></div>',
-            '</div>',
+                '<div class="{0}-tr" role="presentation">',
+                    '<div class="{0}-tc" role="presentation"></div>',
+                '</div>',
             '</div>',
             '<div class="{0}-ml" role="presentation">',
-            '<div class="{0}-mr" role="presentation">',
-            '<div class="{0}-mc" role="presentation"></div>',
-            '</div>',
+                '<div class="{0}-mr" role="presentation">',
+                    '<div class="{0}-mc" role="presentation"></div>',
+                '</div>',
             '</div>',
             '<div class="{0}-bl" role="presentation">',
-            '<div class="{0}-br" role="presentation">',
-            '<div class="{0}-bc" role="presentation"></div>',
-            '</div>',
+                '<div class="{0}-br" role="presentation">',
+                    '<div class="{0}-bc" role="presentation"></div>',
+                '</div>',
             '</div>'
         ].join(''),
-        tabbableSelector = 'a[href],button,iframe,input,select,textarea,[tabindex]',
-        tabbableRe = /^BUTTON|IFRAME|INPUT|SELECT|TEXTAREA$/,
-        tabbableSavedFlagAttribute = 'data-tabindexsaved',
-        tabbableSavedAttribute = 'data-savedtabindex',
         scriptTagRe = /(?:<script([^>]*)?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         replaceScriptTagRe = /(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         srcRe = /\ssrc=([\'\"])(.*?)\1/i,
-        focusRe = /^a|button|embed|iframe|input|object|select|textarea$/i,
         nonSpaceRe = /\S/,
         typeRe = /\stype=([\'\"])(.*?)\1/i,
         msRe = /^-ms-/,
         camelRe = /(-[a-z])/gi,
-        camelReplaceFn = function (m, a) {
+        camelReplaceFn = function(m, a) {
             return a.charAt(1).toUpperCase();
         },
         XMASKED = Ext.baseCSSPrefix + "masked",
@@ -104,42 +99,43 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         EXTELMASKMSG = Ext.baseCSSPrefix + "mask-msg",
         mouseEnterLeaveRe = /^(?:mouseenter|mouseleave)$/,
         bodyRe = /^body/i,
-        scrollFly,
         propertyCache = {},
-        getDisplay = function (el) {
+        getDisplay = function(el) {
             var data = el.getData(),
                 display = data[ORIGINALDISPLAY];
-
+                
             if (display === undefined) {
                 data[ORIGINALDISPLAY] = display = '';
             }
             return display;
         },
-        getVisMode = function (el) {
+        getVisMode = function(el){
             var data = el.getData(),
                 visMode = data[VISMODE];
-
+                
             if (visMode === undefined) {
                 data[VISMODE] = visMode = Element.VISIBILITY;
             }
             return visMode;
         },
         garbageBin,
-        emptyRange = DOC.createRange ? DOC.createRange() : null;
+        emptyRange      = DOC.createRange ? DOC.createRange() : null,
+        inputTags = {
+            INPUT: true,
+            TEXTAREA: true
+        };
 
     return {
         override: 'Ext.dom.Element',
-
+        
         mixins: [
             'Ext.util.Animate'
         ],
 
-        requires: [
-            'Ext.dom.GarbageCollector',
-            'Ext.dom.Fly'
-        ],
-
         uses: [
+            'Ext.dom.GarbageCollector',
+            'Ext.dom.Fly',
+            'Ext.event.publisher.MouseEnterLeave',
             'Ext.fx.Manager',
             'Ext.fx.Anim'
         ],
@@ -153,8 +149,47 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         statics: {
             selectableCls: Ext.baseCSSPrefix + 'selectable',
             unselectableCls: Ext.baseCSSPrefix + 'unselectable',
+            
+            /**
+             * tabIndex attribute name for DOM lookups; needed in IE8 because
+             * it has a bug: dom.getAttribute('tabindex') will return null
+             * while dom.getAttribute('tabIndex') will return the actual value.
+             * IE9+ and all other browsers normalize attribute names to lowercase.
+             *
+             * @private
+             */
+            tabIndexAttributeName: Ext.isIE8 ? 'tabIndex' : 'tabindex',
+            
+            tabbableSelector: 'a[href],button,iframe,input,select,textarea,[tabindex],[contenteditable="true"]',
+            
+            // Anchor and link tags are special; they are only naturally focusable (and tabbable)
+            // if they have href attribute, and tabbabledness is further platform/browser specific.
+            // Thus we check it separately in the code.
+            naturallyFocusableTags: {
+                BUTTON: true,
+                IFRAME: true,
+                EMBED: true,
+                INPUT: true,
+                OBJECT: true,
+                SELECT: true,
+                TEXTAREA: true,
+                HTML: Ext.isIE ? true : false
+            },
 
-            normalize: function (prop) {
+            // <object> element is naturally tabbable only in IE8 and below
+            naturallyTabbableTags: {
+                BUTTON: true,
+                IFRAME: true,
+                INPUT: true,
+                SELECT: true,
+                TEXTAREA: true,
+                OBJECT: Ext.isIE8m ? true : false
+            },
+            
+            tabbableSavedFlagAttribute: 'data-tabindexsaved',
+            tabbableSavedAttribute: 'data-savedtabindex',
+
+            normalize: function(prop) {
                 if (prop === 'float') {
                     prop = Ext.supports.Float ? 'cssFloat' : 'styleFloat';
                 }
@@ -162,13 +197,13 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 return propertyCache[prop] || (propertyCache[prop] = prop.replace(msRe, 'ms-').replace(camelRe, camelReplaceFn));
             },
 
-            getViewportHeight: function () {
+            getViewportHeight: function(){
                 return Ext.isIE9m ? DOC.documentElement.clientHeight : WIN.innerHeight;
             },
 
-            getViewportWidth: function () {
+            getViewportWidth: function() {
                 return (!Ext.isStrict && !Ext.isOpera) ? document.body.clientWidth :
-                    Ext.isIE9m ? DOC.documentElement.clientWidth : WIN.innerWidth;
+                       Ext.isIE9m ? DOC.documentElement.clientWidth : WIN.innerWidth;
             }
         },
 
@@ -180,18 +215,18 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} [scope] The scope to execute the testFn in.
          * @return {Ext.dom.Element} this
          */
-        addClsOnClick: function (className, testFn, scope) {
+        addClsOnClick: function(className, testFn, scope) {
             var me = this,
                 dom = me.dom,
                 hasTest = Ext.isFunction(testFn);
-
-            me.on("mousedown", function () {
+                
+            me.on("mousedown", function() {
                 if (hasTest && testFn.call(scope || me, me) === false) {
                     return false;
                 }
                 Ext.fly(dom).addCls(className);
                 var d = Ext.getDoc(),
-                    fn = function () {
+                    fn = function() {
                         Ext.fly(dom).removeCls(className);
                         d.removeListener("mouseup", fn);
                     };
@@ -208,18 +243,18 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} [scope] The scope to execute the testFn in.
          * @return {Ext.dom.Element} this
          */
-        addClsOnFocus: function (className, testFn, scope) {
+        addClsOnFocus: function(className, testFn, scope) {
             var me = this,
                 dom = me.dom,
                 hasTest = Ext.isFunction(testFn);
-
-            me.on("focus", function () {
+                
+            me.on("focus", function() {
                 if (hasTest && testFn.call(scope || me, me) === false) {
                     return false;
                 }
                 Ext.fly(dom).addCls(className);
             });
-            me.on("blur", function () {
+            me.on("blur", function() {
                 Ext.fly(dom).removeCls(className);
             });
             return me;
@@ -233,19 +268,19 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} [scope] The scope to execute the testFn in.
          * @return {Ext.dom.Element} this
          */
-        addClsOnOver: function (className, testFn, scope) {
+        addClsOnOver: function(className, testFn, scope) {
             var me = this,
                 dom = me.dom,
                 hasTest = Ext.isFunction(testFn);
-
+                
             me.hover(
-                function () {
+                function() {
                     if (hasTest && testFn.call(scope || me, me) === false) {
                         return;
                     }
                     Ext.fly(dom).addCls(className);
                 },
-                function () {
+                function() {
                     Ext.fly(dom).removeCls(className);
                 }
             );
@@ -264,9 +299,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} [scope] The scope (`this` reference) in which the specified function is executed. Defaults to this Element.
          * @return {Ext.util.KeyMap} The KeyMap created
          */
-        addKeyListener: function (key, fn, scope) {
+        addKeyListener: function(key, fn, scope){
             var config;
-            if (typeof key !== 'object' || Ext.isArray(key)) {
+            if(typeof key !== 'object' || Ext.isArray(key)){
                 config = {
                     target: this,
                     key: key,
@@ -276,10 +311,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             } else {
                 config = {
                     target: this,
-                    key: key.key,
-                    shift: key.shift,
-                    ctrl: key.ctrl,
-                    alt: key.alt,
+                    key : key.key,
+                    shift : key.shift,
+                    ctrl : key.ctrl,
+                    alt : key.alt,
                     fn: fn,
                     scope: scope
                 };
@@ -292,7 +327,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} config The KeyMap config. See {@link Ext.util.KeyMap} for more details
          * @return {Ext.util.KeyMap} The KeyMap created
          */
-        addKeyMap: function (config) {
+        addKeyMap: function(config) {
             return new Ext.util.KeyMap(Ext.apply({
                 target: this
             }, config));
@@ -301,13 +336,24 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         /**
          * @private
          */
-        anchorAnimX: function (anchor) {
+        afterAnimate: function() {
+            var shadow = this.shadow;
+
+            if (shadow && !shadow.disabled && !shadow.animate) {
+                shadow.show();
+            }
+        },
+
+        /**
+         * @private
+         */
+        anchorAnimX: function(anchor) {
             var xName = (anchor === 'l') ? 'right' : 'left';
             this.dom.style[xName] = '0px';
         },
 
         // @private - process the passed fx configuration.
-        anim: function (config) {
+        anim: function(config) {
             if (!Ext.isObject(config)) {
                 return (config) ? {} : false;
             }
@@ -402,13 +448,13 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Note that the {@link Ext.fx.Anim#to to} config is required.
          * @return {Ext.dom.Element} this
          */
-        animate: function (config) {
+        animate: function(config) {
             var me = this,
                 animId = me.dom.id || Ext.id(me.dom),
                 listeners,
                 anim,
                 end;
-
+                
 
             if (!Ext.fx.Manager.hasFxBlock(animId)) {
                 // Bit of gymnastics here to ensure our internal listeners get bound first
@@ -423,6 +469,12 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 end = config.autoEnd;
                 delete config.autoEnd;
                 anim = new Ext.fx.Anim(me.anim(config));
+                anim.on({
+                    afteranimate: 'afterAnimate',
+                    beforeanimate: 'beforeAnimate',
+                    scope: me,
+                    single: true
+                });
                 if (listeners) {
                     anim.on(listeners);
                 }
@@ -432,6 +484,17 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 }
             }
             return me;
+        },
+
+        /**
+         * @private
+         */
+        beforeAnimate: function() {
+            var shadow = this.shadow;
+
+            if (shadow && !shadow.disabled && !shadow.animate) {
+                shadow.hide();
+            }
         },
 
         /**
@@ -461,58 +524,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * so if you supply an alternate base class, make sure you also supply all of the necessary rules.
          * @return {Ext.dom.Element} The outermost wrapping element of the created box structure.
          */
-        boxWrap: function (cls) {
+        boxWrap: function(cls) {
             cls = cls || Ext.baseCSSPrefix + 'box';
             var el = Ext.get(this.insertHtml("beforeBegin", "<div class='" + cls + "' role='presentation'>" + Ext.String.format(boxMarkup, cls) + "</div>"));
             el.selectNode('.' + cls + '-mc').appendChild(this.dom);
             return el;
-        },
-
-        /**
-         * When an element is moved around in the DOM, or is hidden using `display:none`, it loses layout, and therefore
-         * all scroll positions of all descendant elements are lost.
-         *
-         * This function caches them, and returns a function, which when run will restore the cached positions.
-         * In the following example, the Panel is moved from one Container to another which will cause it to lose all scroll positions:
-         *
-         *     var restoreScroll = myPanel.el.cacheScrollValues();
-         *     myOtherContainer.add(myPanel);
-         *     restoreScroll();
-         *
-         * @return {Function} A function which will restore all descentant elements of this Element to their scroll
-         * positions recorded when this function was executed. Be aware that the returned function is a closure which has
-         * captured the scope of `cacheScrollValues`, so take care to derefence it as soon as not needed - if is it is a `var`
-         * it will drop out of scope, and the reference will be freed.
-         */
-        cacheScrollValues: function () {
-            var me = this,
-                scrollValues = [],
-                scrolledDescendants = [],
-                descendants, descendant, i, len;
-
-            scrollFly = scrollFly || new Ext.dom.Fly();
-
-            descendants = me.query('*');
-            for (i = 0, len = descendants.length; i < len; i++) {
-                descendant = descendants[i];
-                // use !== 0 for scrollLeft because it can be a negative number
-                // in RTL mode in some browsers.
-                if (descendant.scrollTop > 0 || descendant.scrollLeft !== 0) {
-                    scrolledDescendants.push(descendant);
-                    scrollValues.push(scrollFly.attach(descendant).getScroll());
-                }
-            }
-
-            return function () {
-                var scroll, i, len;
-
-                for (i = 0, len = scrolledDescendants.length; i < len; i++) {
-                    scroll = scrollValues[i];
-                    scrollFly.attach(scrolledDescendants[i]);
-                    scrollFly.setScrollLeft(scroll.left);
-                    scrollFly.setScrollTop(scroll.top);
-                }
-            };
         },
 
         /**
@@ -521,12 +537,12 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * so you can call this over and over. However, if you update the element and need to force a reclean, you
          * can pass true.
          */
-        clean: function (forceReclean) {
-            var me = this,
-                dom = me.dom,
+        clean: function(forceReclean) {
+            var me   = this,
+                dom  = me.dom,
                 data = me.getData(),
-                n = dom.firstChild,
-                ni = -1,
+                n    = dom.firstChild,
+                ni   = -1,
                 nx;
 
             if (data.isCleaned && forceReclean !== true) {
@@ -539,7 +555,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                     // Remove empty/whitespace text nodes
                     if (!(nonSpaceRe.test(n.nodeValue))) {
                         dom.removeChild(n);
-                        // Combine adjacent text nodes
+                    // Combine adjacent text nodes
                     } else if (nx && nx.nodeType === 3) {
                         n.appendData(Ext.String.trim(nx.data));
                         dom.removeChild(nx);
@@ -561,7 +577,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         /**
          * Emptys this element. Removes all child nodes.
          */
-        empty: emptyRange ? function () {
+        empty: emptyRange ? function() {
             var dom = this.dom;
 
             if (dom.firstChild) {
@@ -569,7 +585,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 emptyRange.setEndAfter(dom.lastChild);
                 emptyRange.deleteContents();
             }
-        } : function () {
+        } : function() {
             var dom = this.dom;
 
             while (dom.lastChild) {
@@ -577,7 +593,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             }
         },
 
-        clearListeners: function () {
+        clearListeners: function() {
             this.removeAnchor();
             this.callParent();
         },
@@ -588,15 +604,15 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * You could use 'auto'.
          * @return {Ext.dom.Element} this
          */
-        clearPositioning: function (value) {
+        clearPositioning: function(value) {
             value = value || '';
             return this.setStyle({
-                left: value,
-                right: value,
-                top: value,
-                bottom: value,
-                'z-index': '',
-                position: 'static'
+                left : value,
+                right : value,
+                top : value,
+                bottom : value,
+                'z-index' : '',
+                position : 'static'
             });
         },
 
@@ -607,18 +623,18 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Boolean} [matchBox=false] True to align and size the proxy to this element now.
          * @return {Ext.dom.Element} The new proxy element
          */
-        createProxy: function (config, renderTo, matchBox) {
+        createProxy: function(config, renderTo, matchBox) {
             config = (typeof config === 'object') ? config :
-            { tag: "div", role: 'presentation', cls: config };
+                { tag: "div", role: 'presentation', cls: config };
 
             var me = this,
                 proxy = renderTo ? Ext.DomHelper.append(renderTo, config, true) :
-                    Ext.DomHelper.insertBefore(me.dom, config, true);
+                                   Ext.DomHelper.insertBefore(me.dom, config, true);
 
             proxy.setVisibilityMode(Element.DISPLAY);
             proxy.hide();
             if (matchBox && me.setBox && me.getBox) { // check to make sure Element_position.js is loaded
-                proxy.setBox(me.getBox());
+               proxy.setBox(me.getBox());
             }
             return proxy;
         },
@@ -627,7 +643,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Clears any opacity settings from this element. Required in some cases for IE.
          * @return {Ext.dom.Element} this
          */
-        clearOpacity: function () {
+        clearOpacity: function() {
             return this.setOpacity('');
         },
 
@@ -635,7 +651,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Store the current overflow setting and clip overflow on the element - use {@link #unclip} to remove
          * @return {Ext.dom.Element} this
          */
-        clip: function () {
+        clip: function() {
             var me = this,
                 data = me.getData(),
                 style;
@@ -655,19 +671,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return me;
         },
 
-        constrainScrollLeft: function (left) {
-            var dom = this.dom;
-            return Math.max(Math.min(left, dom.scrollWidth - dom.clientWidth), 0);
-        },
-
-        constrainScrollTop: function (top) {
-            var dom = this.dom;
-            return Math.max(Math.min(top, dom.scrollHeight - dom.clientHeight), 0);
-        },
-
-        destroy: function () {
+        destroy: function() {
             var me = this,
-                dom = me.dom;
+                dom = me.dom,
+                data = me.getData(),
+                maskEl, maskMsg;
 
             if (dom && me.isAnimate) {
                 me.stopAnimation();
@@ -678,51 +686,29 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             //<feature legacyBrowser>
             // prevent memory leaks in IE8
             // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
-            if (dom && Ext.isIE8) {
+            // must not be document, documentElement, body or window object
+            // Have to use != instead of !== for IE8 or it will not recognize that the window
+            // objects are equal
+            if (dom && Ext.isIE8 && (dom.window != dom) && (dom.nodeType !== 9) &&
+                    (dom.tagName !== 'BODY') && (dom.tagName !== 'HTML')) {
                 garbageBin = garbageBin || DOC.createElement('div');
                 garbageBin.appendChild(dom);
                 garbageBin.innerHTML = '';
             }
             //</feature>
-        },
 
-        // a scrollIntoView implementation for scrollIntoView/rtlScrollIntoView to call after
-        // current scrollX has been determined
-        // private
-        doScrollIntoView: function (container, hscroll, animate, highlight, getScrollX, scrollTo) {
-            scrollFly = scrollFly || new Ext.dom.Fly();
+            if (data) {
+                maskEl = data.maskEl;
+                maskMsg = data.maskMsg;
 
-            var me = this,
-                dom = me.dom,
-                scrollX = scrollFly.attach(container)[getScrollX](),
-                scrollY = container.scrollTop,
-                position = me.getScrollIntoViewXY(container, scrollX, scrollY),
-                newScrollX = position.x,
-                newScrollY = position.y;
+                if (maskEl) {
+                    maskEl.destroy();
+                }
 
-            // Highlight upon end of scroll
-            if (highlight) {
-                if (animate) {
-                    animate = Ext.apply({
-                        listeners: {
-                            afteranimate: function () {
-                                scrollFly.attach(dom).highlight();
-                            }
-                        }
-                    }, animate);
-                } else {
-                    scrollFly.attach(dom).highlight();
+                if (maskMsg) {
+                    maskMsg.destroy();
                 }
             }
-
-            if (newScrollY !== scrollY) {
-                scrollFly.attach(container).scrollTo('top', newScrollY, animate);
-            }
-
-            if (hscroll !== false && (newScrollX !== scrollX)) {
-                scrollFly.attach(container)[scrollTo]('left', newScrollX, animate);
-            }
-            return me;
         },
 
         /**
@@ -730,7 +716,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {String} [display] What to set display to when visible
          * @return {Ext.dom.Element} this
          */
-        enableDisplayMode: function (display) {
+        enableDisplayMode : function(display) {
             var me = this;
 
             me.setVisibilityMode(Element.DISPLAY);
@@ -762,14 +748,14 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        fadeIn: function (o) {
+        fadeIn: function(o) {
             var me = this,
                 dom = me.dom;
-
+                
             me.animate(Ext.apply({}, o, {
                 opacity: 1,
                 internalListeners: {
-                    beforeanimate: function (anim) {
+                    beforeanimate: function(anim){
                         // restore any visibility/display that may have 
                         // been applied by a fadeout animation
                         var el = Ext.fly(dom, '_anim');
@@ -777,7 +763,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                             el.setDisplayed('');
                         } else {
                             el.show();
-                        }
+                        } 
                     }
                 }
             }));
@@ -807,14 +793,14 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        fadeOut: function (o) {
+        fadeOut: function(o) {
             var me = this,
                 dom = me.dom;
-
+                
             o = Ext.apply({
                 opacity: 0,
                 internalListeners: {
-                    afteranimate: function (anim) {
+                    afteranimate: function(anim){
                         if (dom && anim.to.opacity === 0) {
                             var el = Ext.fly(dom, '_anim');
                             if (o.useDisplay) {
@@ -822,7 +808,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                             } else {
                                 el.hide();
                             }
-                        }
+                        }         
                     }
                 }
             }, o);
@@ -831,7 +817,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         },
 
         // private
-        fixDisplay: function () {
+        fixDisplay: function(){
             var me = this;
             if (me.isStyle(DISPLAY, NONE)) {
                 me.setStyle(VISIBILITY, HIDDEN);
@@ -862,7 +848,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} [options] Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        frame: function (color, count, obj) {
+        frame: function(color, count, obj){
             var me = this,
                 dom = me.dom,
                 beforeAnim;
@@ -871,25 +857,25 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             count = count || 1;
             obj = obj || {};
 
-            beforeAnim = function () {
+            beforeAnim = function() {
                 var el = Ext.fly(dom, '_anim'),
                     animScope = this,
                     box,
                     proxy, proxyAnim;
-
+                    
                 el.show();
                 box = el.getBox();
                 proxy = Ext.getBody().createChild({
                     role: 'presentation',
                     id: el.dom.id + '-anim-proxy',
                     style: {
-                        position: 'absolute',
+                        position : 'absolute',
                         'pointer-events': 'none',
                         'z-index': 35000,
-                        border: '0px solid ' + color
+                        border : '0px solid ' + color
                     }
                 });
-
+                
                 proxyAnim = new Ext.fx.Anim({
                     target: proxy,
                     duration: obj.duration || 1000,
@@ -911,7 +897,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         width: box.width + 40
                     }
                 });
-                proxyAnim.on('afteranimate', function () {
+                proxyAnim.on('afteranimate', function() {
                     proxy.destroy();
                     // kill the no-op element animation created below
                     animScope.end();
@@ -941,18 +927,18 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * color anims.
          * @private
          */
-        getColor: function (attr, defaultValue, prefix) {
+        getColor: function(attr, defaultValue, prefix) {
             var v = this.getStyle(attr),
                 color = prefix || prefix === '' ? prefix : '#',
-                h, len, i = 0;
+                h, len, i=0;
 
             if (!v || (/transparent|inherit/.test(v))) {
                 return defaultValue;
             }
             if (/^r/.test(v)) {
-                v = v.slice(4, v.length - 1).split(',');
-                len = v.length;
-                for (; i < len; i++) {
+                 v = v.slice(4, v.length - 1).split(',');
+                 len = v.length;
+                 for (; i<len; i++) {
                     h = parseInt(v[i], 10);
                     color += (h < 16 ? '0' : '') + h.toString(16);
                 }
@@ -967,7 +953,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Gets this element's {@link Ext.ElementLoader ElementLoader}
          * @return {Ext.ElementLoader} The loader
          */
-        getLoader: function () {
+        getLoader: function() {
             var me = this,
                 data = me.getData(),
                 loader = data.loader;
@@ -987,139 +973,20 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Boolean} [autoPx=false] true to return pixel values for "auto" styles.
          * @return {Object}
          */
-        getPositioning: function (autoPx) {
+        getPositioning: function(autoPx){
             var styles = this.getStyle(['left', 'top', 'position', 'z-index']),
                 dom = this.dom;
 
-            if (autoPx) {
-                if (styles.left === 'auto') {
+            if(autoPx) {
+                if(styles.left === 'auto') {
                     styles.left = dom.offsetLeft + 'px';
                 }
-                if (styles.top === 'auto') {
+                if(styles.top === 'auto') {
                     styles.top = dom.offsetTop + 'px';
                 }
             }
 
             return styles;
-        },
-
-        /**
-         * Returns the current scroll position of the element.
-         * @return {Object} An object containing the scroll position in the format
-         * `{left: (scrollLeft), top: (scrollTop)}`
-         */
-        getScroll: function () {
-            var me = this,
-                dom = me.dom,
-                docElement = DOC.documentElement,
-                left, top,
-                body = document.body;
-
-            if (dom === DOC || dom === body) {
-                // the scrollLeft/scrollTop may be either on the body or documentElement,
-                // depending on browser. It is possible to use window.pageXOffset/pageYOffset
-                // in most modern browsers but this complicates things when in rtl mode because
-                // pageXOffset does not always behave the same as scrollLeft when direction is
-                // rtl. (e.g. pageXOffset can be an offset from the right, while scrollLeft
-                // is offset from the left, one can be positive and the other negative, etc.)
-                // To avoid adding an extra layer of feature detection in rtl mode to deal with
-                // these differences, it's best just to always use scrollLeft/scrollTop
-                left = docElement.scrollLeft || (body ? body.scrollLeft : 0);
-                top = docElement.scrollTop || (body ? body.scrollTop : 0);
-            } else {
-                left = dom.scrollLeft;
-                top = dom.scrollTop;
-            }
-
-            return {
-                left: left,
-                top: top
-            };
-        },
-
-        /**
-         * Gets the x and y coordinates needed for scrolling an element into view within
-         * a given container.  These coordinates translate into the scrollLeft and scrollTop
-         * positions that will need to be set on an ancestor of the element in order to make
-         * this element visible within its container.
-         * @param {String/HTMLElement/Ext.Element} The container
-         * @param {Number} scrollX The container's current scroll position on the x axis
-         * @param {Number} scrollY The container's current scroll position on the y axis
-         * @return {Object} An object with "x" and "y" properties
-         * @private
-         */
-        getScrollIntoViewXY: function (container, scrollX, scrollY) {
-            var me = this,
-                dom = me.dom,
-                ct = Ext.getDom(container),
-                offsets = me.getOffsetsTo(ct),
-            // el's box
-                width = dom.offsetWidth,
-                height = dom.offsetHeight,
-                left = offsets[0] + scrollX,
-                top = offsets[1] + scrollY,
-                bottom = top + height,
-                right = left + width,
-            // ct's box
-                ctClientHeight = ct.clientHeight,
-                ctClientWidth = ct.clientWidth,
-                ctBottom = scrollY + ctClientHeight,
-                ctRight = scrollX + ctClientWidth,
-                scrollX, scrollY;
-
-            if (height > ctClientHeight || top < scrollY) {
-                scrollY = top;
-            } else if (bottom > ctBottom) {
-                scrollY = bottom - ctClientHeight;
-            }
-
-            if (width > ctClientWidth || left < scrollX) {
-                scrollX = left;
-            } else if (right > ctRight) {
-                scrollX = right - ctClientWidth;
-            }
-
-            return {
-                x: scrollX,
-                y: scrollY
-            };
-        },
-
-        /**
-         * Gets the left scroll position
-         * @return {Number} The left scroll position
-         */
-        getScrollLeft: function () {
-            var dom = this.dom;
-
-            if (dom === DOC || dom === document.body) {
-                return this.getScroll().left;
-            } else {
-                return dom.scrollLeft;
-            }
-        },
-
-        /**
-         * Gets the top scroll position
-         * @return {Number} The top scroll position
-         */
-        getScrollTop: function () {
-            var dom = this.dom;
-
-            if (dom === DOC || dom === document.body) {
-                return this.getScroll().top;
-            } else {
-                return dom.scrollTop;
-            }
-        },
-
-        getXY: function () {
-            var xy = this.callParent(),
-                scroll = Ext.getDoc().getScroll();
-
-            xy[0] += scroll.left;
-            xy[1] += scroll.top;
-            return xy;
         },
 
         /**
@@ -1142,13 +1009,13 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        ghost: function (anchor, obj) {
+        ghost: function(anchor, obj) {
             var me = this,
                 dom = me.dom,
                 beforeAnim;
 
             anchor = anchor || "b";
-            beforeAnim = function () {
+            beforeAnim = function() {
                 var el = Ext.fly(dom, '_anim'),
                     width = el.getWidth(),
                     height = el.getHeight(),
@@ -1216,9 +1083,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Element animation config object
          * @return {Ext.dom.Element} this
          */
-        hide: function (animate) {
+        hide: function(animate){
             // hideMode override
-            if (typeof animate === 'string') {
+            if (typeof animate === 'string'){
                 this.setVisible(false, animate);
                 return this;
             }
@@ -1250,7 +1117,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        highlight: function (color, o) {
+        highlight: function(color, o) {
             var me = this,
                 dom = me.dom,
                 from = {},
@@ -1271,7 +1138,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
             // Don't apply directly on lns, since we reference it in our own callbacks below
             o.listeners = Ext.apply(Ext.apply({}, lns), {
-                beforeanimate: function () {
+                beforeanimate: function() {
                     restore = dom.style[attr];
                     var el = Ext.fly(dom, '_anim');
                     el.clearOpacity();
@@ -1283,7 +1150,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         return fn.apply(event.scope || lns.scope || WIN, arguments);
                     }
                 },
-                afteranimate: function () {
+                afteranimate: function() {
                     if (dom) {
                         dom.style[attr] = restore;
                     }
@@ -1315,7 +1182,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * options parameter}.
          * @return {Ext.dom.Element} this
          */
-        hover: function (overFn, outFn, scope, options) {
+        hover: function(overFn, outFn, scope, options) {
             var me = this;
             me.on('mouseenter', overFn, scope || me.dom, options);
             me.on('mouseleave', outFn, scope || me.dom, options);
@@ -1329,7 +1196,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} overrides An object containing methods to override/implement on the DD object
          * @return {Ext.dd.DD} The DD object
          */
-        initDD: function (group, config, overrides) {
+        initDD: function(group, config, overrides){
             var dd = new Ext.dd.DD(Ext.id(this.dom), group, config);
             return Ext.apply(dd, overrides);
         },
@@ -1341,7 +1208,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} overrides An object containing methods to override/implement on the DDProxy object
          * @return {Ext.dd.DDProxy} The DDProxy object
          */
-        initDDProxy: function (group, config, overrides) {
+        initDDProxy: function(group, config, overrides){
             var dd = new Ext.dd.DDProxy(Ext.id(this.dom), group, config);
             return Ext.apply(dd, overrides);
         },
@@ -1353,45 +1220,149 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} overrides An object containing methods to override/implement on the DDTarget object
          * @return {Ext.dd.DDTarget} The DDTarget object
          */
-        initDDTarget: function (group, config, overrides) {
+        initDDTarget: function(group, config, overrides){
             var dd = new Ext.dd.DDTarget(Ext.id(this.dom), group, config);
             return Ext.apply(dd, overrides);
         },
 
         /**
-         * Checks whether this element can be focused.
+         * Checks whether this element can be focused programmatically or by clicking.
+         * To check if an element is in the document tab flow, use {@link #isTabbable}.
+         *
          * @return {Boolean} True if the element is focusable
          */
-        isFocusable: function (/* private - assume it's the focusEl of a Component */ asFocusEl) {
-            var me = this,
-                dom = me.dom,
-                hasTabIndex = dom.hasAttribute('tabindex'),
-                tabIndex = hasTabIndex && dom.getAttribute('tabindex'),
-                nodeName = dom.nodeName,
-                canFocus = false;
-
+        isFocusable: function() {
+            var dom = this.dom,
+                focusable = false,
+                nodeName;
+                
             if (dom && !dom.disabled) {
-                // A tabIndex of -1 means it has to be programmatically focused
-                if (tabIndex == "-1") { // note that the value is a string
-                    canFocus = asFocusEl;
+                nodeName = dom.nodeName;
+                
+                /*
+                 * An element is focusable if:
+                 *   - It is naturally focusable, or
+                 *   - It is an anchor or link with href attribute, or
+                 *   - It has a tabIndex, or
+                 *   - It is an editing host (contenteditable="true")
+                 *
+                 * Also note that we can't check dom.tabIndex because IE will return 0
+                 * for elements that have no tabIndex attribute defined, regardless of
+                 * whether they are naturally focusable or not.
+                 */
+                focusable = !!Ext.Element.naturallyFocusableTags[nodeName]            ||
+                            ((nodeName === 'A' || nodeName === 'LINK') && !!dom.href) ||
+                            dom.getAttribute('tabindex') != null                      ||
+                            dom.contentEditable === 'true';
+                
+                // In IE8, <input type="hidden"> does not have a corresponding style
+                // so isVisible() will assume that it's not hidden.
+                if (Ext.isIE8 && nodeName === 'INPUT' && dom.type === 'hidden') {
+                    focusable = false;
                 }
-                else {
-                    // See if it's a naturally focusable element
-                    if (focusRe.test(nodeName)) {
-                        if ((nodeName !== 'A') || dom.href) {
-                            canFocus = true;
-                        }
-                    }
-                    // A non naturally focusable element is in the navigation flow if it has a positive numeric tab index.
-                    else {
-                        canFocus = tabIndex != null && tabIndex >= 0;
-                    }
-                }
-                canFocus = canFocus && me.isVisible(true);
+                
+                // Invisible elements cannot be focused, so check that as well
+                focusable = focusable && this.isVisible(true);
             }
-            return canFocus;
+            
+            return focusable;
         },
 
+        /**
+         * Returns `true` if this Element is an input field, or is editable in any way.
+         * @returns {Boolean} `true` if this Element is an input field, or is editable in any way.
+         */
+        isInputField: function() {
+            var dom = this.dom,
+                contentEditable = dom.contentEditable;
+
+            // contentEditable will default to inherit if not specified, only check if the
+            // attribute has been set or explicitly set to true
+            // http://html5doctor.com/the-contenteditable-attribute/
+            // Also skip <input> tags of type="button", we use them for checkboxes
+            // and radio buttons
+            if ((inputTags[dom.tagName] && dom.type !== 'button') ||
+                (contentEditable === '' || contentEditable === 'true')) {
+                return true;
+            }
+            return false;
+        },
+        
+        /**
+         * Checks whether this element participates in the sequential focus navigation,
+         * and can be reached by using Tab key.
+         *
+         * @return {Boolean} True if the element is tabbable.
+         */
+        isTabbable: function() {
+            var dom = this.dom,
+                tabbable = false,
+                nodeName, hasIndex, tabIndex;
+            
+            if (dom && !dom.disabled) {
+                nodeName = dom.nodeName;
+                
+                // Can't use dom.tabIndex here because IE will return 0 for elements
+                // that have no tabindex attribute defined, regardless of whether they are
+                // naturally tabbable or not.
+                tabIndex = dom.getAttribute('tabindex');
+                hasIndex = tabIndex != null;
+                
+                tabIndex -= 0;
+                
+                // Anchors and links are only naturally tabbable if they have href attribute
+                // See http://www.w3.org/TR/html5/editing.html#specially-focusable
+                if (nodeName === 'A' || nodeName === 'LINK') {
+                    if (dom.href) {
+                        // It is also possible to make an anchor untabbable by setting
+                        // tabIndex < 0 on it
+                        tabbable = hasIndex && tabIndex < 0 ? false : true;
+                    }
+                    
+                    // Anchor w/o href is tabbable if it has tabIndex >= 0,
+                    // or if it's editable 
+                    else {
+                        if (dom.contentEditable === 'true') {
+                            tabbable = !hasIndex || (hasIndex && tabIndex >= 0) ? true : false;
+                        }
+                        else {
+                            tabbable = hasIndex && tabIndex >= 0 ? true : false;
+                        }
+                    }
+                }
+                
+                // If an element has contenteditable="true" or is naturally tabbable,
+                // then it is a potential candidate unless its tabIndex is < 0.
+                else if (dom.contentEditable === 'true' || 
+                         Ext.Element.naturallyTabbableTags[nodeName]) {
+                    tabbable = hasIndex && tabIndex < 0 ? false : true;
+                }
+                
+                // That leaves non-editable elements that can only be made tabbable
+                // by slapping tabIndex >= 0 on them
+                else {
+                    if (hasIndex && tabIndex >= 0) {
+                        tabbable = true;
+                    }
+                }
+                
+                // In IE8, <input type="hidden"> does not have a corresponding style
+                // so isVisible() will assume that it's not hidden.
+                if (Ext.isIE8 && nodeName === 'INPUT' && dom.type === 'hidden') {
+                    tabbable = false;
+                }
+                
+                // Invisible elements can't be tabbed into. If we have a component ref
+                // we'll also check if the component itself is visible before incurring
+                // the expense of DOM style reads.
+                tabbable = tabbable &&
+                           (!this.component || this.component.isVisible(true)) &&
+                           this.isVisible(true);
+            }
+            
+            return tabbable;
+        },
+        
         /**
          * Returns true if this element is masked. Also re-centers any displayed message
          * within the mask.
@@ -1401,7 +1372,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *
          * @return {Boolean}
          */
-        isMasked: function (deep) {
+        isMasked: function(deep) {
             var me = this,
                 data = me.getData(),
                 maskEl = data.maskEl,
@@ -1417,12 +1388,12 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             }
             else if (deep) {
                 parent = me.findParentNode();
-
+                
                 if (parent) {
                     return Ext.fly(parent).isMasked(deep);
                 }
             }
-
+            
             return hasMask;
         },
 
@@ -1430,7 +1401,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Returns true if this element is scrollable.
          * @return {Boolean}
          */
-        isScrollable: function () {
+        isScrollable: function() {
             var dom = this.dom;
             return dom.scrollHeight > dom.clientHeight || dom.scrollWidth > dom.clientWidth;
         },
@@ -1441,28 +1412,28 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options a options object for Ext.ElementLoader {@link Ext.ElementLoader#method-load}
          * @return {Ext.dom.Element} this
          */
-        load: function (options) {
+        load: function(options) {
             this.getLoader().load(options);
             return this;
         },
 
         /**
-         * Puts a mask over this element to disable user interaction.
-         * This method can only be applied to elements which accept child nodes. Use
-         * {@link #unmask} to remove the mask.
-         *
-         * @param {String} [msg] A message to display in the mask
-         * @param {String} [msgCls] A css class to apply to the msg element
-         * @return {Ext.dom.Element} The mask element
-         */
+        * Puts a mask over this element to disable user interaction.
+        * This method can only be applied to elements which accept child nodes. Use 
+        * {@link #unmask} to remove the mask.
+        * 
+        * @param {String} [msg] A message to display in the mask
+        * @param {String} [msgCls] A css class to apply to the msg element
+        * @return {Ext.dom.Element} The mask element
+        */
         mask: function (msg, msgCls /* private - passed by AbstractComponent.mask to avoid the need to interrogate the DOM to get the height*/, elHeight) {
             var me = this,
                 dom = me.dom,
                 data = me.getData(),
                 maskEl = data.maskEl,
-                maskMsg = data.maskMsg;
+                maskMsg;
 
-            if (!(bodyRe.test(dom.tagName) && me.getStyle('position') == 'static')) {
+            if (!(bodyRe.test(dom.tagName) && me.getStyle('position') === 'static')) {
                 me.addCls(XMASKEDRELATIVE);
             }
 
@@ -1471,20 +1442,13 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 maskEl.destroy();
             }
 
-            if (maskMsg) {
-                maskMsg.destroy();
-            }
-
-            Ext.DomHelper.append(dom, [
-                {
+            maskEl = Ext.DomHelper.append(dom, {
+                role: 'presentation',
+                cls : Ext.baseCSSPrefix + "mask " + Ext.baseCSSPrefix + "border-box",
+                children: {
                     role: 'presentation',
-                    cls: Ext.baseCSSPrefix + "mask",
-                    style: 'top:0;left:0;'
-                },
-                {
-                    role: 'presentation',
-                    cls: msgCls ? EXTELMASKMSG + " " + msgCls : EXTELMASKMSG,
-                    cn: {
+                    cls : msgCls ? EXTELMASKMSG + " " + msgCls : EXTELMASKMSG,
+                    cn  : {
                         tag: 'div',
                         role: 'presentation',
                         cls: Ext.baseCSSPrefix + 'mask-msg-inner',
@@ -1496,12 +1460,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         }
                     }
                 }
-            ]);
+            }, true);
+            maskMsg = Ext.get(maskEl.dom.firstChild);
 
-            maskMsg = Ext.get(dom.lastChild);
-            maskEl = Ext.get(maskMsg.dom.previousSibling);
-
-            data.maskMsg = maskMsg;
             data.maskEl = maskEl;
 
             me.addCls(XMASKED);
@@ -1521,7 +1482,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             else {
                 me.saveTabbableState();
             }
-
+            
             me.saveChildrenTabbableState();
 
             // ie will not expand full height automatically
@@ -1548,11 +1509,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *     this.menuEl.un(this.mouseLeaveMonitor);
          *
          */
-        monitorMouseLeave: function (delay, handler, scope) {
+        monitorMouseLeave: function(delay, handler, scope) {
             var me = this,
                 timer,
                 listeners = {
-                    mouseleave: function (e) {
+                    mouseleave: function(e) {
                         //<feature legacyBrowser>
                         if (Ext.isIE9m) {
                             e.enableIEAsync();
@@ -1560,7 +1521,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         //</feature>
                         timer = Ext.defer(handler, delay, scope || me, [e]);
                     },
-                    mouseenter: function () {
+                    mouseenter: function() {
                         clearTimeout(timer);
                     }
                 };
@@ -1568,71 +1529,6 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             me.on(listeners);
             return listeners;
         },
-
-        /**
-         * Returns true if this element needs an explicit tabIndex to make it focusable.
-         * Input fields, text areas, buttons, anchors elements **with an href** etc
-         * do not need a tabIndex, but structural elements do.
-         */
-        needsTabIndex: function () {
-            var me = this;
-
-            if (me.dom) {
-                if ((me.dom.nodeName === 'A') && (!me.dom.href)) {
-                    return true;
-                }
-                return !focusRe.test(me.dom.nodeName);
-            }
-        },
-
-        //<feature legacyBrowser>
-        /**
-         * Normalize cross browser event differences
-         * @private
-         * @param {Object} eventName The event name
-         * @param {Object} fn The function to execute
-         * @return {Object} The new event name/function
-         */
-        normalizeEvent: function (eventName) {
-            var fn, newName;
-
-            if (!Ext.supports.MouseEnterLeave && mouseEnterLeaveRe.test(eventName)) {
-                fn = this.normalizeWithin;
-                newName = eventName == 'mouseenter' ? 'mouseover' : 'mouseout';
-            } else if (eventName == 'mousewheel' && !Ext.supports.MouseWheel && !Ext.isOpera) {
-                newName = 'DOMMouseScroll';
-            }
-            return newName ? {
-                eventName: newName,
-                normalizeFn: fn
-            } : null;
-        },
-
-        /**
-         * Checks whether the event's relatedTarget is contained inside (or is) the target
-         * Used for adding mousenter/mouseleave support in older browser.
-         * (see normalizeEvent)
-         * @private
-         * @param {Object} event
-         */
-        normalizeWithin: function (event) {
-            var parent = event.currentTarget,
-                child = event.getRelatedTarget();
-
-            if (parent && parent.firstChild) {
-                while (child) {
-                    if (child === parent) {
-                        return false;
-                    }
-                    child = child.parentNode;
-                    if (child && (child.nodeType !== 1)) {
-                        child = null;
-                    }
-                }
-            }
-            return true;
-        },
-        //</feature>
 
         /**
          * Fades the element out while slowly expanding it in all directions. When the effect is completed, the element will
@@ -1651,7 +1547,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        puff: function (obj) {
+        puff: function(obj) {
             var me = this,
                 dom = me.dom,
                 beforeAnim,
@@ -1664,20 +1560,20 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 useDisplay: false
             });
 
-            beforeAnim = function () {
+            beforeAnim = function() {
                 var el = Ext.fly(dom, '_anim');
-
+                
                 el.clearOpacity();
                 el.show();
                 this.to = {
                     width: box.width * 2,
                     height: box.height * 2,
                     x: box.x - (box.width / 2),
-                    y: box.y - (box.height / 2),
+                    y: box.y - (box.height /2),
                     opacity: 0,
                     fontSize: '200%'
                 };
-                this.on('afteranimate', function () {
+                this.on('afteranimate',function() {
                     var el = Ext.fly(dom, '_anim');
                     if (el) {
                         if (obj.useDisplay) {
@@ -1704,209 +1600,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         },
 
         /**
-         * Scrolls this element the specified direction. Does bounds checking to make sure the scroll is
-         * within this element's scrollable range.
-         * @param {String} direction Possible values are:
-         *
-         * - `"l"` (or `"left"`)
-         * - `"r"` (or `"right"`)
-         * - `"t"` (or `"top"`, or `"up"`)
-         * - `"b"` (or `"bottom"`, or `"down"`)
-         *
-         * @param {Number} distance How far to scroll the element in pixels
-         * @param {Boolean/Object} [animate] true for the default animation or a standard Element
-         * animation config object
-         * @return {Boolean} Returns true if a scroll was triggered or false if the element
-         * was scrolled as far as it could go.
-         */
-        scroll: function (direction, distance, animate) {
-            if (!this.isScrollable()) {
-                return false;
-            }
-
-            // Allow full word, or initial to be sent.
-            // (Ext.dd package uses full word)
-            direction = direction.charAt(0);
-            var me = this,
-                dom = me.dom,
-                side = direction === 'r' || direction === 'l' ? 'left' : 'top',
-                scrolled = false,
-                currentScroll, constrainedScroll;
-
-            if (direction === 'l' || direction === 't' || direction === 'u') {
-                distance = -distance;
-            }
-
-            if (side === 'left') {
-                currentScroll = dom.scrollLeft;
-                constrainedScroll = me.constrainScrollLeft(currentScroll + distance);
-            } else {
-                currentScroll = dom.scrollTop;
-                constrainedScroll = me.constrainScrollTop(currentScroll + distance);
-            }
-
-            if (constrainedScroll !== currentScroll) {
-                this.scrollTo(side, constrainedScroll, animate);
-                scrolled = true;
-            }
-
-            return scrolled;
-        },
-
-        /**
-         * Scrolls this element by the passed delta values, optionally animating.
-         *
-         * All of the following are equivalent:
-         *
-         *      el.scrollBy(10, 10, true);
-         *      el.scrollBy([10, 10], true);
-         *      el.scrollBy({ x: 10, y: 10 }, true);
-         *
-         * @param {Number/Number[]/Object} deltaX Either the x delta, an Array specifying x and y deltas or
-         * an object with "x" and "y" properties.
-         * @param {Number/Boolean/Object} deltaY Either the y delta, or an animate flag or config object.
-         * @param {Boolean/Object} animate Animate flag/config object if the delta values were passed separately.
-         * @return {Ext.dom.Element} this
-         */
-        scrollBy: function (deltaX, deltaY, animate) {
-            var me = this,
-                dom = me.dom;
-
-            // Extract args if deltas were passed as an Array.
-            if (deltaX.length) {
-                animate = deltaY;
-                deltaY = deltaX[1];
-                deltaX = deltaX[0];
-            } else if (typeof deltaX != 'number') { // or an object
-                animate = deltaY;
-                deltaY = deltaX.y;
-                deltaX = deltaX.x;
-            }
-
-            if (deltaX) {
-                me.scrollTo('left', me.constrainScrollLeft(dom.scrollLeft + deltaX), animate);
-            }
-            if (deltaY) {
-                me.scrollTo('top', me.constrainScrollTop(dom.scrollTop + deltaY), animate);
-            }
-
-            return me;
-        },
-
-        // private
-        scrollChildIntoView: function (child, hscroll) {
-            // scrollFly is used inside scrollInfoView, must use a method-unique fly here
-            Ext.fly(child).scrollIntoView(this, hscroll);
-        },
-
-        /**
-         * Scrolls this element into view within the passed container.
-         *
-         *       Ext.create('Ext.data.Store', {
-         *           storeId:'simpsonsStore',
-         *           fields:['name', 'email', 'phone'],
-         *           data:{'items':[
-         *               { 'name': 'Lisa',  "email":"lisa@simpsons.com",  "phone":"555-111-1224"  },
-         *               { 'name': 'Bart',  "email":"bart@simpsons.com",  "phone":"555-222-1234" },
-         *               { 'name': 'Homer', "email":"homer@simpsons.com",  "phone":"555-222-1244"  },
-         *               { 'name': 'Marge', "email":"marge@simpsons.com", "phone":"555-222-1254"  },
-         *               { 'name': 'Milhouse', "email":"milhouse@simpsons.com",  "phone":"555-222-1244"  },
-         *               { 'name': 'Willy', "email":"willy@simpsons.com", "phone":"555-222-1254"  },
-         *               { 'name': 'Skinner', "email":"skinner@simpsons.com",  "phone":"555-222-1244"  },
-         *               { 'name': 'Hank (last row)', "email":"hank@simpsons.com", "phone":"555-222-1254"  }
-         *           ]},
-         *           proxy: {
-         *               type: 'memory',
-         *               reader: {
-         *                   type: 'json',
-         *                   rootProperty: 'items'
-         *               }
-         *           }
-         *       });
-         *
-         *       var grid = Ext.create('Ext.grid.Panel', {
-         *           title: 'Simpsons',
-         *           store: Ext.data.StoreManager.lookup('simpsonsStore'),
-         *           columns: [
-         *               { text: 'Name',  dataIndex: 'name', width: 125 },
-         *               { text: 'Email', dataIndex: 'email', flex: 1 },
-         *               { text: 'Phone', dataIndex: 'phone' }
-         *           ],
-         *           height: 190,
-         *           width: 400,
-         *           renderTo: Ext.getBody(),
-         *           tbar: [{
-         *               text: 'Scroll row 7 into view',
-         *               handler: function () {
-         *                   var view = grid.getView();
-         *                   
-         *                   Ext.get(view.getRow(7)).scrollIntoView(view.getEl(), null, true);
-         *               }
-         *           }]
-         *       });
-         *
-         * @param {String/HTMLElement/Ext.Element} [container=document.body] The container element
-         * to scroll.  Should be a string (id), dom node, or Ext.Element.
-         * @param {Boolean} [hscroll=true] False to disable horizontal scroll.
-         * @param {Boolean/Object} [animate] true for the default animation or a standard Element
-         * animation config object
-         * @param {Boolean} [highlight=false] true to {@link #highlight} the element when it is in view.
-         * @return {Ext.dom.Element} this
-         */
-        scrollIntoView: function (container, hscroll, animate, highlight) {
-            container = Ext.getDom(container) || Ext.getBody().dom;
-
-            return this.doScrollIntoView(
-                container,
-                hscroll,
-                animate,
-                highlight,
-                'getScrollLeft',
-                'scrollTo'
-            );
-        },
-
-        /**
-         * Scrolls this element the specified scroll point. It does NOT do bounds checking so
-         * if you scroll to a weird value it will try to do it. For auto bounds checking, use #scroll.
-         * @param {String} side Either "left" for scrollLeft values or "top" for scrollTop values.
-         * @param {Number} value The new scroll value
-         * @param {Boolean/Object} [animate] true for the default animation or a standard Element
-         * animation config object
-         * @return {Ext.dom.Element} this
-         */
-        scrollTo: function (side, value, animate) {
-            //check if we're scrolling top or left
-            var top = /top/i.test(side),
-                me = this,
-                prop = top ? 'scrollTop' : 'scrollLeft',
-                dom = me.dom,
-                animCfg;
-
-            if (!animate || !me.anim) {
-                // just setting the value, so grab the direction
-                dom[prop] = value;
-                // corrects IE, other browsers will ignore
-                dom[prop] = value;
-            }
-            else {
-                animCfg = {
-                    to: {}
-                };
-                animCfg.to[prop] = value;
-                if (Ext.isObject(animate)) {
-                    Ext.applyIf(animCfg, animate);
-                }
-                me.animate(animCfg);
-            }
-            return me;
-        },
-
-        /**
          * Enable text selection for this element (normalized across browsers)
          * @return {Ext.dom.Element} this
          */
-        selectable: function () {
+        selectable: function() {
             var me = this;
 
             // We clear this property for all browsers, not just Opera. This is so that rendering templates don't need to
@@ -1918,7 +1615,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
             return me;
         },
-
+        
         //<feature legacyBrowser>
         // private
         // used to ensure the mouseup event is captured if it occurs outside of the
@@ -1926,7 +1623,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         // el.dom.setCapture() directly) is so that we can override it to emptyFn
         // during testing because setCapture() can wreak havoc on emulated mouse events
         // http://msdn.microsoft.com/en-us/library/windows/desktop/ms646262(v=vs.85).aspx
-        setCapture: function () {
+        setCapture: function() {
             var dom = this.dom;
             if (Ext.isIE9m && dom.setCapture) {
                 dom.setCapture();
@@ -1941,17 +1638,24 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * default display, or a string to set the display directly.
          * @return {Ext.dom.Element} this
          */
-        setDisplayed: function (value) {
-            if (typeof value === "boolean") {
-                value = value ? getDisplay(this) : NONE;
+        setDisplayed: function(value) {
+            var me = this;
+
+            if (typeof value === "boolean"){
+               value = value ? getDisplay(me) : NONE;
             }
-            this.setStyle(DISPLAY, value);
-            return this;
+            me.setStyle(DISPLAY, value);
+
+            if (me.shadow || me.shim) {
+                me.setUnderlaysVisible(value !== NONE);
+            }
+
+            return me;
         },
 
         /**
          * Set the height of this Element.
-         *
+         * 
          *     // change the height to 200px and animate with default configuration
          *     Ext.fly('elementId').setHeight(200, true);
          *
@@ -1961,17 +1665,17 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *         // will change the content to "finished"
          *         callback: function(){ this.{@link #setHtml}("finished"); }
          *     });
-         *
+         *     
          * @param {Number/String} height The new height. This may be one of:
          *
          * - A Number specifying the new height in pixels.
          * - A String used to set the CSS height style. Animation may **not** be used.
-         *
+         *     
          * @param {Boolean/Object} [animate] a standard Element animation config object or `true` for
          * the default animation (`{duration: 350, easing: 'ease-in'}`)
          * @return {Ext.dom.Element} this
          */
-        setHeight: function (height, animate) {
+        setHeight: function(height, animate) {
             var me = this;
 
             if (!animate || !me.anim) {
@@ -1996,7 +1700,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * by {@link #setVertical}).
          * @private
          */
-        setHorizontal: function () {
+        setHorizontal: function() {
             var me = this,
                 cls = me.verticalCls;
 
@@ -2023,7 +1727,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Replaces the content of this element with a *single text node* containing the passed text.
          * @param {String} text The text to display in this Element.
          */
-        updateText: function (text) {
+        updateText: function(text) {
             var me = this,
                 dom,
                 textNode;
@@ -2048,7 +1752,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Function} [callback] For async script loading you can be notified when the update completes
          * @return {Ext.dom.Element} this
          */
-        setHtml: function (html, loadScripts, callback) {
+        setHtml: function(html, loadScripts, callback) {
             var me = this,
                 id,
                 dom,
@@ -2066,10 +1770,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 return me;
             }
 
-            id = Ext.id();
+            id  = Ext.id();
             html += '<span id="' + id + '" role="presentation"></span>';
 
-            interval = Ext.interval(function () {
+            interval = Ext.interval(function() {
                 var hd,
                     match,
                     attrs,
@@ -2088,18 +1792,18 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                     attrs = match[1];
                     srcMatch = attrs ? attrs.match(srcRe) : false;
                     if (srcMatch && srcMatch[2]) {
-                        s = DOC.createElement("script");
-                        s.src = srcMatch[2];
-                        typeMatch = attrs.match(typeRe);
-                        if (typeMatch && typeMatch[2]) {
-                            s.type = typeMatch[2];
-                        }
-                        hd.appendChild(s);
+                       s = DOC.createElement("script");
+                       s.src = srcMatch[2];
+                       typeMatch = attrs.match(typeRe);
+                       if (typeMatch && typeMatch[2]) {
+                           s.type = typeMatch[2];
+                       }
+                       hd.appendChild(s);
                     } else if (match[2] && match[2].length > 0) {
                         if (WIN.execScript) {
-                            WIN.execScript(match[2]);
+                           WIN.execScript(match[2]);
                         } else {
-                            WIN.eval(match[2]);
+                           WIN.eval(match[2]);
                         }
                     }
                 }
@@ -2116,7 +1820,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * the default animation (`{duration: 350, easing: 'ease-in'}`)
          * @return {Ext.dom.Element} this
          */
-        setOpacity: function (opacity, animate) {
+        setOpacity: function(opacity, animate) {
             var me = this;
 
             if (!me.dom) {
@@ -2148,28 +1852,8 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} posCfg
          * @return {Ext.dom.Element} this
          */
-        setPositioning: function (pc) {
+        setPositioning: function(pc) {
             return this.setStyle(pc);
-        },
-
-        /**
-         * Sets the left scroll position
-         * @param {Number} left The left scroll position
-         * @return {Ext.dom.Element} this
-         */
-        setScrollLeft: function (left) {
-            this.dom.scrollLeft = left;
-            return this;
-        },
-
-        /**
-         * Sets the top scroll position
-         * @param {Number} top The top scroll position
-         * @return {Ext.dom.Element} this
-         */
-        setScrollTop: function (top) {
-            this.dom.scrollTop = top;
-            return this;
         },
 
         /**
@@ -2178,7 +1862,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * and applying hooks for rotating getters and setters for border/margin/padding.
          * (getWidth becomes getHeight and vice versa), setStyle and getStyle will
          * also return the inverse when height or width are being operated on.
-         *
+         * 
          * @param {Number} angle the angle of rotation - either 90 or 270
          * @param {String} cls an optional css class that contains the required
          * styles for switching the element to vertical orientation. Omit this if
@@ -2186,7 +1870,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * it will be removed from the element when {@link #setHorizontal} is called.
          * @private
          */
-        setVertical: function (angle, cls) {
+        setVertical: function(angle, cls) {
             var me = this,
                 proto = Element.prototype;
 
@@ -2229,7 +1913,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *
          * @return {Ext.dom.Element} this
          */
-        setSize: function (width, height, animate) {
+        setSize: function(width, height, animate) {
             var me = this;
 
             if (Ext.isObject(width)) { // in case of object from getSize()
@@ -2241,6 +1925,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             if (!animate || !me.anim) {
                 me.dom.style.width = Element.addUnits(width);
                 me.dom.style.height = Element.addUnits(height);
+
+                if (me.shadow || me.shim) {
+                    me.syncUnderlays();
+                }
             }
             else {
                 if (animate === true) {
@@ -2264,7 +1952,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Boolean/Object} [animate] True for the default animation, or a standard Element animation config object
          * @return {Ext.dom.Element} this
          */
-        setVisible: function (visible, animate) {
+        setVisible: function(visible, animate) {
             var me = this,
                 dom = me.dom,
                 visMode = getVisMode(me);
@@ -2290,7 +1978,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 if (visMode === Element.DISPLAY) {
                     return me.setDisplayed(visible);
                 } else if (visMode === Element.OFFSETS) {
-                    me[visible ? 'removeCls' : 'addCls'](OFFSETCLASS);
+                    me[visible?'removeCls':'addCls'](OFFSETCLASS);
                 } else if (visMode === Element.VISIBILITY) {
                     me.fixDisplay();
                     // Show by clearing visibility style. Explicitly setting to "visible" overrides parent visibility setting
@@ -2309,9 +1997,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                     };
                 }
                 me.animate(Ext.applyIf({
-                    callback: function () {
+                    callback: function() {
                         if (!visible) {
-
+                            
                             // Grab the dom again, since the reference may have changed if we use fly
                             Ext.fly(dom).setVisible(false).setOpacity(1);
                         }
@@ -2322,12 +2010,17 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 }, animate));
             }
             me.getData()[ISVISIBLE] = visible;
+
+            if (me.shadow || me.shim) {
+                me.setUnderlaysVisible(visible);
+            }
+
             return me;
         },
 
         /**
          * Set the width of this Element.
-         *
+         * 
          *     // change the width to 200px and animate with default configuration
          *     Ext.fly('elementId').setWidth(200, true);
          *
@@ -2337,17 +2030,17 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *         // will change the content to "finished"
          *         callback: function(){ this.{@link #setHtml}("finished"); }
          *     });
-         *
+         *     
          * @param {Number/String} width The new width. This may be one of:
          *
          * - A Number specifying the new width in pixels.
          * - A String used to set the CSS width style. Animation may **not** be used.
-         *
+         * 
          * @param {Boolean/Object} [animate] a standard Element animation config object or `true` for
          * the default animation (`{duration: 350, easing: 'ease-in'}`)
          * @return {Ext.dom.Element} this
          */
-        setWidth: function (width, animate) {
+        setWidth: function(width, animate) {
             var me = this;
             if (!animate || !me.anim) {
                 me.callParent(arguments);
@@ -2365,11 +2058,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return me;
         },
 
-        setX: function (x, animate) {
+        setX: function(x, animate) {
             return this.setXY([x, this.getY()], animate);
         },
 
-        setXY: function (xy, animate) {
+        setXY: function(xy, animate) {
             var me = this;
 
             if (!animate || !me.anim) {
@@ -2383,7 +2076,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return this;
         },
 
-        setY: function (y, animate) {
+        setY: function(y, animate) {
             return this.setXY([this.getX(), y], animate);
         },
 
@@ -2394,9 +2087,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Element animation config object
          * @return {Ext.dom.Element} this
          */
-        show: function (animate) {
+        show: function(animate){
             // hideMode override
-            if (typeof animate === 'string') {
+            if (typeof animate === 'string'){
                 this.setVisible(true, animate);
                 return this;
             }
@@ -2428,7 +2121,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * `slideOut` causes the browser to lose all scroll positions.
          * @return {Ext.dom.Element} The Element
          */
-        slideIn: function (anchor, obj, slideOut) {
+        slideIn: function(anchor, obj, slideOut) {
             var me = this,
                 dom = me.dom,
                 elStyle = dom.style,
@@ -2440,7 +2133,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             anchor = anchor || "t";
             obj = obj || {};
 
-            beforeAnim = function () {
+            beforeAnim = function() {
                 var animScope = this,
                     listeners = obj.listeners,
                     el = Ext.fly(dom, '_anim'),
@@ -2631,9 +2324,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 }));
 
                 // In the absence of a callback, this listener MUST be added first
-                wrapAnim.on('afteranimate', function () {
+                wrapAnim.on('afteranimate', function() {
                     var el = Ext.fly(dom, '_anim');
-
+                    
                     el.setStyle(originalStyles);
                     if (slideOut) {
                         if (obj.useDisplay) {
@@ -2698,7 +2391,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        slideOut: function (anchor, o) {
+        slideOut: function(anchor, o) {
             return this.slideIn(anchor, o, true);
         },
 
@@ -2708,10 +2401,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Boolean} [preventDefault] true to prevent the default action too
          * @return {Ext.dom.Element} this
          */
-        swallowEvent: function (eventName, preventDefault) {
+        swallowEvent: function(eventName, preventDefault) {
             var me = this,
                 e, eLen,
-                fn = function (e) {
+                fn = function(e) {
                     e.stopPropagation();
                     if (preventDefault) {
                         e.preventDefault();
@@ -2751,7 +2444,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
          * @return {Ext.dom.Element} The Element
          */
-        switchOff: function (obj) {
+        switchOff: function(obj) {
             var me = this,
                 dom = me.dom,
                 beforeAnim;
@@ -2763,13 +2456,13 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 useDisplay: false
             });
 
-            beforeAnim = function () {
+            beforeAnim = function() {
                 var el = Ext.fly(dom, '_anim'),
                     animScope = this,
                     size = el.getSize(),
                     xy = el.getXY(),
                     keyframe, position;
-
+                    
                 el.clearOpacity();
                 el.clip();
                 position = el.getPositioning();
@@ -2792,7 +2485,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         }
                     }
                 });
-                keyframe.on('afteranimate', function () {
+                keyframe.on('afteranimate', function() {
                     var el = Ext.fly(dom, '_anim');
                     if (obj.useDisplay) {
                         el.setDisplayed(false);
@@ -2806,7 +2499,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                     animScope.end();
                 });
             };
-
+            
             me.animate({
                 // See "A Note About Wrapped Animations" at the top of this class:
                 duration: (Math.max(obj.duration, 500) * 2),
@@ -2826,19 +2519,20 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Currently used for updating grid cells without modifying DOM structure
          *
          * Synchronizes content of this Element with the content of the passed element.
-         *
+         * 
          * Style and CSS class are copied from source into this Element, and contents are synched
          * recursively. If a child node is a text node, the textual data is copied.
          */
-        syncContent: function (source) {
+        syncContent: function(source) {
             source = Ext.getDom(source);
             var sourceNodes = source.childNodes,
                 sourceLen = sourceNodes.length,
                 dest = this.dom,
                 destNodes = dest.childNodes,
                 destLen = destNodes.length,
-                i, destNode, sourceNode,
-                nodeType, newAttrs, attLen, attName;
+                i,  destNode, sourceNode,
+                nodeType, newAttrs, attLen, attName,
+                elData = dest._extData;
 
             // Copy top node's attributes across. Use IE-specific method if possible.
             // In IE10, there is a problem where the className will not get updated
@@ -2859,6 +2553,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         dest.setAttribute(attName, newAttrs[i].value);
                     }
                 }
+            }
+
+            // The element's data is no longer synchronized. We just overwrite it in the DOM
+            if (elData) {
+                elData.isSynchronized = false;
             }
 
             // If the number of child nodes does not match, fall back to replacing innerHTML
@@ -2901,7 +2600,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * @param {Boolean/Object} [animate] True for the default animation, or a standard Element animation config object
          * @return {Ext.dom.Element} this
          */
-        toggle: function (animate) {
+        toggle: function(animate){
             var me = this;
             me.setVisible(!me.isVisible(), me.anim(animate));
             return me;
@@ -2910,11 +2609,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         /**
          * Hides a previously applied mask.
          */
-        unmask: function () {
+        unmask: function() {
             var me = this,
                 data = me.getData(),
                 maskEl = data.maskEl,
-                maskMsg = data.maskMsg,
                 style;
 
             if (maskEl) {
@@ -2928,11 +2626,6 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 if (maskEl) {
                     maskEl.destroy();
                     delete data.maskEl;
-                }
-
-                if (maskMsg) {
-                    maskMsg.destroy();
-                    delete data.maskMsg;
                 }
 
                 me.removeCls([XMASKED, XMASKEDRELATIVE]);
@@ -2949,7 +2642,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Return clipping (overflow) to original clipping before {@link #clip} was called
          * @return {Ext.dom.Element} this
          */
-        unclip: function () {
+        unclip: function() {
             var me = this,
                 data = me.getData(),
                 clip;
@@ -2970,7 +2663,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return me;
         },
 
-        translate: function (x, y, z) {
+        translate: function(x, y, z) {
             if (Ext.supports.CssTransforms && !Ext.isIE9m) {
                 this.callParent(arguments);
             } else {
@@ -2980,7 +2673,6 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 if (y != null) {
                     this.dom.style.top = y + 'px';
                 }
-                this.dom.style.position = 'absolute';
             }
         },
 
@@ -2988,7 +2680,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          * Disables text selection for this element (normalized across browsers)
          * @return {Ext.dom.Element} this
          */
-        unselectable: function () {
+        unselectable: function() {
             // The approach used to disable text selection combines CSS, HTML attributes and DOM events. Importantly the
             // strategy is designed to be expressible in markup, so that elements can be rendered unselectable without
             // needing modifications post-render. e.g.:
@@ -3021,178 +2713,177 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
             return me;
         },
-
+        
         privates: {
             /**
-             * Checks whether this element can be tabbed into.
-             * @return {Boolean} True if the element is tabbable.
+             * Returns true if this element needs an explicit tabIndex to make it focusable.
+             * Input fields, text areas, buttons, anchor elements **with an href** etc
+             * do not need a tabIndex, but structural elements do.
+             * See http://www.w3.org/TR/html5/editing.html#specially-focusable
              * @private
              */
-            isTabbable: function () {
-                var me = this,
-                    dom = me.dom,
-                    tag = dom.nodeName,
-                    editable = dom.isContentEditable,
-                    hasIdx, idx;
-
-                // Disabled elements are not tabbable. The value does not matter,
-                // if the "disabled" attribute is set then the element is disabled;
-                // unless it's editable, which makes all modern browsers ignore
-                // element's disabledness. Not IE8 though.
-                if (dom.hasAttribute('disabled') && (Ext.isIE8 || !editable)) {
-                    return false;
+            needsTabIndex: function() {
+                var dom = this.dom,
+                    nodeName, isFocusable;
+                
+                if (dom) {
+                    nodeName = dom.nodeName;
+                    
+                    // Note that the code below is identical to isFocusable();
+                    // it is intentionally duplicated for performance reasons.
+                    isFocusable = !!Ext.Element.naturallyFocusableTags[nodeName]            ||
+                                  ((nodeName === 'A' || nodeName === 'LINK') && !!dom.href) ||
+                                  dom.getAttribute('tabindex') != null                      ||
+                                  dom.contentEditable === 'true';
+                    
+                    // The result we need is the opposite to what we got
+                    return !isFocusable;
                 }
-
-                // Invisible elements are not tabbable as well.
-                if (!me.isVisible(true)) {
-                    return false;
-                }
-
-                hasIdx = dom.hasAttribute('tabindex');
-                idx = hasIdx && dom.getAttribute('tabindex') - 0;
-
-                if (tag === 'A') {
-                    // Anchor with href is naturally tabbable, unless it has tabIndex < 0
-                    if (dom.href) {
-                        return hasIdx && idx < 0 ? false : true;
-                    }
-
-                    // Anchor w/o href is tabbable if it has tabIndex >= 0,
-                    // or if it's editable 
-                    else {
-                        if (editable) {
-                            return !hasIdx || (hasIdx && idx >= 0) ? true : false;
-                        }
-                        else {
-                            return hasIdx && idx >= 0 ? true : false;
-                        }
-                    }
-                }
-
-                // If an element has contenteditable="true" or is naturally tabbable,
-                // then it is a potential candidate unless its tabIndex is < 0.
-                // <object> element is naturally tabbable only in IE8.
-                else if (editable || tabbableRe.test(tag) || (Ext.isIE8 && tag === 'OBJECT')) {
-                    return hasIdx && idx < 0 ? false : true;
-                }
-
-                // That leaves non-editable elements that can only be made tabbable
-                // by slapping tabIndex >= 0 on them
-                else {
-                    if (hasIdx && idx >= 0) {
-                        return true;
-                    }
-                }
-
-                return false;
             },
-
+            
             // @private
-            selectTabbableElements: function (asDom, selector, /* private */ limit, backward) {
-                var selection, nodes, node, el, i, len, to, step;
-
+            // The difference between findTabbableElements and selectTabbableElements
+            // is that find() will include `this` element itself if it is tabbable, while
+            // select() will only find tabbable children following querySelectorAll() logic.
+            findTabbableElements: function(asDom, selector, /* private */ limit, backward) {
                 asDom = asDom != undefined ? asDom : true;
-
-                nodes = this.dom.querySelectorAll(selector || tabbableSelector);
-                len = nodes.length;
-
-                if (!len) {
-                    return nodes;
+                
+                var me = this,
+                    selection;
+                
+                selection = me.selectTabbableElements(asDom, selector, limit, backward);
+                
+                if (me.isTabbable()) {
+                    selection.unshift(asDom ? me.dom : me);
                 }
-
+                
+                return selection;
+            },
+            
+            // @private
+            selectTabbableElements: function(asDom, selector, /* private */ limit, backward) {
+                var selection = [],
+                    nodes, node, el, i, len, to, step, tabIndex;
+                
+                asDom = asDom != undefined ? asDom : true;
+                
+                nodes = this.dom.querySelectorAll(selector || Ext.Element.tabbableSelector);
+                len   = nodes.length;
+                
+                if (!len) {
+                    return selection;
+                }
+                
                 if (backward) {
-                    i = len - 1;
-                    to = 0;
+                    i    = len - 1;
+                    to   = 0;
                     step = -1;
                 }
                 else {
-                    i = 0;
-                    to = len - 1;
+                    i    = 0;
+                    to   = len - 1;
                     step = 1;
                 }
-
-                selection = [];
-
+                
                 // We're only interested in the elements that an user can *tab into*,
                 // not all programmatically focusable elements. So we have to filter
                 // these out.
-                for (; ; i += step) {
+                for (;; i += step) {
                     if ((step > 0 && i > to) || (step < 0 && i < to)) {
                         break;
                     }
-
+                    
                     node = nodes[i];
-                    el = asDom ? Ext.fly(node) : Ext.get(node);
-
-                    if (el.isTabbable()) {
-                        selection.push(asDom ? node : el);
+                    
+                    // A node with tabIndex < 0 absolutely can't be tabbable
+                    // so we can save a function call if that is the case.
+                    // Note that we can't use node.tabIndex here because IE
+                    // will return 0 for elements that have no tabindex
+                    // attribute defined, regardless of whether they are
+                    // tabbable or not.
+                    tabIndex = node.getAttribute('tabindex') - 0; // quicker than parseInt
+                    
+                    // tabIndex value may be null for nodes with no tabIndex defined;
+                    // most of those may be naturally tabbable. We don't want to
+                    // check this here, that's isTabbable()'s job and it's not trivial.
+                    // We explicitly check that tabIndex is not negative; the expression
+                    // below is purposeful.
+                    if (!(tabIndex < 0)) {
+                        el = asDom ? Ext.fly(node) : Ext.get(node);
+                        
+                        if (el.isTabbable()) {
+                            selection.push(asDom ? node : el);
+                        }
                     }
-
+                    
                     if (selection.length >= limit) {
                         return selection;
                     }
                 }
-
+                
                 return selection;
             },
-
+        
             // @private
-            selectFirstTabbableElement: function (asDom, selector) {
+            selectFirstTabbableElement: function(asDom, selector) {
                 var els = this.selectTabbableElements(asDom, selector, 1, false);
-
+            
                 return els[0];
             },
-
+        
             // @private
-            selectLastTabbableElement: function (asDom, selector) {
-                var els = this.selectTabbableElements(asDom, selector, 1, true);
-
-                return els[0];
+            selectLastTabbableElement: function(asDom, selector) {
+                var el = this.selectTabbableElements(true, selector, 1, true)[0];
+            
+                return (asDom !== false) ? el : Ext.get(el);
             },
-
+        
             // @private
-            saveTabbableState: function (attribute) {
-                var dom = this.dom;
-
+            saveTabbableState: function(attribute) {
+                var tabbableSavedFlagAttribute = Ext.Element.tabbableSavedFlagAttribute,
+                    dom = this.dom;
+            
                 // Prevent tabIndex from being munged more than once
                 if (dom.hasAttribute(tabbableSavedFlagAttribute)) {
                     return;
                 }
-
-                attribute = attribute || tabbableSavedAttribute;
-
+                
+                attribute = attribute || Ext.Element.tabbableSavedAttribute;
+            
                 // tabIndex could be set on both naturally tabbable and generic elements.
                 // Either way we need to save it to restore later.
                 if (dom.hasAttribute('tabindex')) {
                     dom.setAttribute(attribute, dom.getAttribute('tabindex'));
                 }
-
+            
                 // When no tabIndex is specified, that means a naturally tabbable element.
                 else {
                     dom.setAttribute(attribute, 'none');
                 }
-
+            
                 // We disable the tabbable state by setting tabIndex to -1.
                 // The element can still be focused programmatically though.
                 dom.setAttribute('tabindex', -1);
                 dom.setAttribute(tabbableSavedFlagAttribute, true);
-
+            
                 return this;
             },
-
+        
             // @private
-            restoreTabbableState: function (attribute) {
-                var dom = this.dom,
+            restoreTabbableState: function(attribute) {
+                var tabbableSavedFlagAttribute = Ext.Element.tabbableSavedFlagAttribute,
+                    dom = this.dom,
                     idx;
-
-                attribute = attribute || tabbableSavedAttribute;
-
-                if (!dom.hasAttribute(tabbableSavedFlagAttribute) || !dom.hasAttribute(attribute)) {
+                
+                attribute = attribute || Ext.Element.tabbableSavedAttribute;
+            
+                if (!dom.hasAttribute(tabbableSavedFlagAttribute) ||
+                    !dom.hasAttribute(attribute)) {
                     return;
                 }
-
+            
                 idx = dom.getAttribute(attribute);
-
+            
                 // That is a naturally tabbable element
                 if (idx === 'none') {
                     dom.removeAttribute('tabindex');
@@ -3200,16 +2891,17 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 else {
                     dom.setAttribute('tabindex', idx);
                 }
-
+            
                 dom.removeAttribute(attribute);
                 dom.removeAttribute(tabbableSavedFlagAttribute);
-
+            
                 return this;
             },
-
+        
             // @private
-            saveChildrenTabbableState: function (attribute) {
+            saveChildrenTabbableState: function(attribute) {
                 var children, child, i, len;
+                
                 if (this.dom) {
                     children = this.selectTabbableElements();
 
@@ -3218,23 +2910,25 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         child.saveTabbableState(attribute);
                     }
                 }
-                return this;
+                
+                return children;
             },
-
+        
             // @private
-            restoreChildrenTabbableState: function (attribute) {
-                var children, child, i, len;
-
-                attribute = attribute || tabbableSavedAttribute;
-
-                children = this.dom.querySelectorAll('[' + attribute + ']');
-
-                for (i = 0, len = children.length; i < len; i++) {
-                    child = Ext.fly(children[i]);
-                    child.restoreTabbableState(attribute);
+            restoreChildrenTabbableState: function(attribute, children) {
+                var child, i, len;
+                
+                if (this.dom) {
+                    attribute = attribute || Ext.Element.tabbableSavedAttribute;
+                    children  = children  || this.dom.querySelectorAll('[' + attribute + ']');
+            
+                    for (i = 0, len = children.length; i < len; i++) {
+                        child = Ext.fly(children[i]);
+                        child.restoreTabbableState(attribute);
+                    }
                 }
-
-                return this;
+            
+                return children;
             }
         },
 
@@ -3251,7 +2945,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @param {Number} seconds The length of time to pause (in seconds)
                      * @return {Ext.dom.Element} The Element
                      */
-                    pause: function (ms) {
+                    pause: function(ms) {
                         var me = this;
                         Ext.fx.Manager.setFxDefaults(me.id, {
                             delay: ms
@@ -3282,7 +2976,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
                      * @return {Ext.dom.Element} The Element
                      */
-                    scale: function (w, h, o) {
+                    scale: function(w, h, o) {
                         this.animate(Ext.apply({}, o, {
                             width: w,
                             height: h
@@ -3314,7 +3008,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @param {Object} options Object literal with any of the {@link Ext.fx.Anim} config options
                      * @return {Ext.dom.Element} The Element
                      */
-                    shift: function (config) {
+                    shift: function(config) {
                         this.animate(config);
                         return this;
                     }
@@ -3331,7 +3025,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Ext.dom.Element} this
                      * @deprecated 4.2.0 Use {@link #setXY} instead.
                      */
-                    moveTo: function (x, y, animate) {
+                    moveTo: function(x, y, animate) {
                         return this.setXY([x, y], animate);
                     },
 
@@ -3357,7 +3051,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Ext.dom.Element} this
                      * @deprecated 4.2.0 Use {@link Ext.util.Positionable#setBox} instead.
                      */
-                    setBounds: function (x, y, width, height, animate) {
+                    setBounds: function(x, y, width, height, animate) {
                         return this.setBox({
                             x: x,
                             y: y,
@@ -3375,12 +3069,16 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Ext.dom.Element} this
                      * @deprecated 4.2.0 Use {@link #setLocalXY} instead
                      */
-                    setLeftTop: function (left, top) {
+                    setLeftTop: function(left, top) {
                         var me = this,
                             style = me.dom.style;
 
                         style.left = Element.addUnits(left);
                         style.top = Element.addUnits(top);
+
+                        if (me.shadow || me.shim) {
+                            me.syncUnderlays();
+                        }
 
                         return me;
                     },
@@ -3394,7 +3092,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Ext.dom.Element} this
                      * @deprecated 4.2.0 Use {@link #setXY} instead.
                      */
-                    setLocation: function (x, y, animate) {
+                    setLocation: function(x, y, animate) {
                         return this.setXY([x, y], animate);
                     }
                 }
@@ -3408,7 +3106,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {String} The attribute value
                      * @deprecated 5.0.0 Please use {@link #getAttribute} instead.
                      */
-                    getAttributeNS: function (namespace, name) {
+                    getAttributeNS: function(namespace, name) {
                         return this.getAttribute(name, namespace);
                     },
 
@@ -3417,7 +3115,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Number[]} The x, y values [x, y]
                      * @deprecated 5.0.0
                      */
-                    getCenterXY: function () {
+                    getCenterXY: function(){
                         return this.getAlignToXY(DOC, 'c-c');
                     },
 
@@ -3428,7 +3126,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Number}
                      * @deprecated 5.0.0
                      */
-                    getComputedHeight: function () {
+                    getComputedHeight: function() {
                         return Math.max(this.dom.offsetHeight, this.dom.clientHeight) ||
                             parseFloat(this.getStyle(HEIGHT)) || 0;
                     },
@@ -3440,7 +3138,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Number}
                      * @deprecated 5.0.0
                      */
-                    getComputedWidth: function () {
+                    getComputedWidth: function() {
                         return Math.max(this.dom.offsetWidth, this.dom.clientWidth) ||
                             parseFloat(this.getStyle(WIDTH)) || 0;
                     },
@@ -3458,7 +3156,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Number} return.height
                      * @deprecated 5.0.0
                      */
-                    getStyleSize: function () {
+                    getStyleSize: function() {
                         var me = this,
                             d = this.dom,
                             isDoc = (d === DOC || d === DOC.body),
@@ -3468,8 +3166,8 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                         // If the body, use static methods
                         if (isDoc) {
                             return {
-                                width: Element.getViewportWidth(),
-                                height: Element.getViewportHeight()
+                                width : Element.getViewportWidth(),
+                                height : Element.getViewportHeight()
                             };
                         }
 
@@ -3492,10 +3190,10 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * deprecated as of version 5.0 because border-box sizing is forced upon all elements
                      * via a stylesheet rule, and the browsers that do not support border-box (IE6/7 strict
                      * mode) are no longer supported.
-                     * @deprecated 5.0.0
+                     * @deprecated 5.0.0 
                      * @return {Boolean}
                      */
-                    isBorderBox: function () {
+                    isBorderBox: function() {
                         return true;
                     },
 
@@ -3504,7 +3202,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                      * @return {Boolean}
                      * @deprecated 5.0.0 use element.isStyle('display', 'none');
                      */
-                    isDisplayed: function () {
+                    isDisplayed: function() {
                         return !this.isStyle('display', 'none');
                     },
 
@@ -3518,7 +3216,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             }
         }
     };
-})(), function () {
+})(), function() {
     var Element = Ext.dom.Element,
         proto = Element.prototype,
         useDocForId = !Ext.isIE8,
@@ -3528,48 +3226,11 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         trimRe = /^\s+|\s+$/g,
         styleHooks = proto.styleHooks,
         supports = Ext.supports,
-        touchScroll = 0,
         removeNode, garbageBin, verticalStyleHooks90, verticalStyleHooks270, edges, k,
         edge, borderWidth;
 
     proto._init(Element);
     delete proto._init;
-
-    // TODO: move touch scroller detection elsewhere
-    if (Ext.os.is.iOS || Ext.os.is.Android) {
-        touchScroll = 2
-    } else if (navigator.msMaxTouchPoints ||
-        (Ext.isWebKit && supports.TouchEvents && Ext.os.is.Desktop)) {
-        touchScroll = 1;
-    }
-    /**
-     * @class Ext.supports
-     */
-    Ext.apply(supports, {
-        /**
-         * @property {Number} touchScroll
-         * This property is used to trigger touch scrolling support via Ext.scroll.Manager.
-         * There are two valid values for this property:
-         *
-         * - `0` - Touch scrolling disabled.
-         *
-         * - `1` - enables partial scroller support.  In this mode the touch scroller
-         * simply controls the scroll positions of naturally overflowing elements.
-         * This mode is typically used on multi-input devices where native scrolling
-         * using the mouse is desired, but native touch-scrolling must be disabled to
-         * avoid cancelling gesture recognition inside of scrollable elements (e.g.
-         * IE10 and up on touch-screen laptops and tablets)
-         *
-         * - `2` - enables full scroller support.  In this mode, scrolling is entirely
-         * "virtual", that is natural browser scrolling of elements is disabled
-         * (overflow: hidden) and the contents of scrollable elements are wrapped in a
-         * "scrolllerEl"`.  Scrolling is simulated by translating the scrollerEl using
-         * CSS, and {@link Ext.scroll.Indicator scroll indicators} will be shown while
-         * scrolling since there are no native scrollbars in this mode.
-         * @private
-         */
-        touchScroll: touchScroll
-    });
 
     Ext.plainTableCls = Ext.baseCSSPrefix + 'table-plain';
     Ext.plainListCls = Ext.baseCSSPrefix + 'list-plain';
@@ -3579,12 +3240,12 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         Ext.CompositeElementLite.importElementMethods();
     }
 
-
     styleHooks.opacity = {
         name: 'opacity',
-        afterSet: function (dom, value, el) {
-            if (el.isLayer) {
-                el.onOpacitySet(value);
+        afterSet: function(dom, value, el) {
+            var shadow = el.shadow;
+            if (shadow) {
+                shadow.setOpacity(value);
             }
         }
     };
@@ -3613,21 +3274,21 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 // value can be a number or '' or null... so treat falsey as no opacity
                 if (typeof(value) === 'number' && value >= 0 && value < 1) {
                     value *= 100;
-                    style.filter = val + (val.length ? ' ' : '') + 'alpha(opacity=' + value + ')';
+                    style.filter = val + (val.length ? ' ' : '') + 'alpha(opacity='+value+')';
                 } else {
                     style.filter = val;
                 }
-            }
+            }  
         });
     }
-
+    
     if (!supports.matchesSelector) {
         // Match basic tagName.ClassName selector syntax for is implementation
         var simpleSelectorRe = /^([a-z]+|\*)?(?:\.([a-z][a-z\-_0-9]*))?$/i,
             dashRe = /\-/g,
             fragment,
             classMatcher = function (tag, cls) {
-                var classRe = new RegExp('(?:^|\\s+)' + cls.replace(dashRe, '\\-') + '(?:\\s+|$)');
+                var classRe = new RegExp('(?:^|\\s+)' +cls.replace(dashRe, '\\-') + '(?:\\s+|$)');
                 if (tag && tag !== '*') {
                     tag = tag.toUpperCase();
                     return function (el) {
@@ -3647,7 +3308,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             cache = {};
 
         proto.matcherCache = cache;
-        proto.is = function (selector) {
+        proto.is = function(selector) {
             // Empty selector always matches
             if (!selector) {
                 return true;
@@ -3757,21 +3418,21 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
     // override getStyle for border-*-width
     if (Ext.isIE8) {
-        function getBorderWidth(dom, el, inline, style) {
+        function getBorderWidth (dom, el, inline, style) {
             if (style[this.styleName] === 'none') {
                 return '0px';
             }
             return style[this.name];
         }
 
-        edges = ['Top', 'Right', 'Bottom', 'Left'];
+        edges = ['Top','Right','Bottom','Left'];
         k = edges.length;
 
         while (k--) {
             edge = edges[k];
             borderWidth = 'border' + edge + 'Width';
 
-            styleHooks['border-' + edge.toLowerCase() + '-width'] = styleHooks[borderWidth] = {
+            styleHooks['border-'+edge.toLowerCase()+'-width'] = styleHooks[borderWidth] = {
                 name: borderWidth,
                 styleName: 'border' + edge + 'Style',
                 get: getBorderWidth
@@ -3791,6 +3452,14 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         // In sencha v5 isBorderBox is no longer needed since all supported browsers
         // suppport border-box, but it is hard coded to true for backward compatibility
         isBorderBox: true,
+
+        /**
+         * @property {Boolean} useShims
+         * @member Ext
+         * Set to `true` to use a {@link Ext.util.Floating#shim shim} on all floating Components
+         * and {@link Ext.LoadMask LoadMasks}
+         */
+        useShims: false,
 
         /**
          * @private
@@ -3840,9 +3509,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
          *
          * @param {Object} obj The list of behaviors to apply
          */
-        addBehaviors: function (o) {
-            if (!Ext.isReady) {
-                Ext.onReady(function () {
+        addBehaviors: function(o){
+            if(!Ext.isReady){
+                Ext.onReady(function(){
                     Ext.addBehaviors(o);
                 });
             } else {
@@ -3853,7 +3522,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 for (b in o) {
                     if ((parts = b.split('@'))[1]) { // for Object prototype breakers
                         s = parts[0];
-                        if (!cache[s]) {
+                        if(!cache[s]){
                             cache[s] = Ext.fly(document).select(s, true);
                         }
                         cache[s].on(parts[1], o[b]);
@@ -3867,7 +3536,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
     if (Ext.isIE8) {
         // save a reference to the removeNode function defined in sencha-core
         removeNode = Ext.removeNode;
-        Ext.removeNode = function (node) {
+        Ext.removeNode = function(node) {
             removeNode(node);
             // prevent memory leaks in IE8
             // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
@@ -3912,7 +3581,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                                 //<debug>
                                 Ext.Error.raise("Stale Element with id '" + el.id +
                                     "' found in Element cache. " +
-                                    "Make sure to clean up Element instances using destroy()");
+                                    "Make sure to clean up Element instances using destroy()" );
                                 //</debug>
                                 entry.destroy();
                             }
@@ -3947,9 +3616,9 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         //
         // https://developer.mozilla.org/en-US/docs/DOM/element.getAttribute
         // http://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-745549614
-        proto.getAttribute = function (name, ns) {
+        proto.getAttribute = function(name, ns) {
             var d = this.dom,
-                type;
+                    type;
             if (ns) {
                 type = typeof d[ns + ":" + name];
                 if (type != 'undefined' && type != 'unknown') {
@@ -3967,7 +3636,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
     Ext.onReady(function () {
         var transparentRe = /^(?:transparent|(?:rgba[(](?:\s*\d+\s*[,]){3}\s*0\s*[)]))$/i,
             bodyCls = [],
-        //htmlCls = [],
+            //htmlCls = [],
             origSetWidth = proto.setWidth,
             origSetHeight = proto.setHeight,
             origSetSize = proto.setSize,
@@ -3986,7 +3655,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             // occurs.
             styleHooks.width = {
                 name: 'width',
-                set: function (dom, value, el) {
+                set: function(dom, value, el) {
                     var style = dom.style,
                         needsFix = el._needsTableWidthFix,
                         origDisplay = style.display;
@@ -4003,7 +3672,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                     }
                 }
             };
-            proto.setWidth = function (width, animate) {
+            proto.setWidth = function(width, animate) {
                 var me = this,
                     dom = me.dom,
                     style = dom.style,
@@ -4022,7 +3691,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 }
                 return me;
             };
-            proto.setSize = function (width, height, animate) {
+            proto.setSize = function(width, height, animate) {
                 var me = this,
                     dom = me.dom,
                     style = dom.style,
@@ -4047,7 +3716,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         if (Ext.isIE8) {
             styleHooks.height = {
                 name: 'height',
-                set: function (dom, value, el) {
+                set: function(dom, value, el) {
                     var component = el.component,
                         frameInfo, frameBodyStyle;
 
@@ -4067,7 +3736,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 }
             };
 
-            proto.setHeight = function (height, animate) {
+            proto.setHeight = function(height, animate) {
                 var component = this.component,
                     frameInfo, frameBodyStyle;
 
@@ -4086,7 +3755,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 return origSetHeight.call(this, height, animate);
             };
 
-            proto.setSize = function (width, height, animate) {
+            proto.setSize = function(width, height, animate) {
                 var component = this.component,
                     frameInfo, frameBodyStyle;
 
@@ -4110,7 +3779,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         // Element.unselectable relies on this listener to prevent selection in IE. Some other browsers support the event too
         // but it is only strictly required for IE. In WebKit this listener causes subtle differences to how the browser handles
         // the non-selection, e.g. whether or not the mouse cursor changes when attempting to select text.
-        Ext.getDoc().on('selectstart', function (ev, dom) {
+        Ext.getDoc().on('selectstart', function(ev, dom) {
             var selectableCls = Element.selectableCls,
                 unselectableCls = Element.unselectableCls,
                 tagName = dom && dom.tagName;
@@ -4143,7 +3812,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             }
         });
 
-        function fixTransparent(dom, el, inline, style) {
+        function fixTransparent (dom, el, inline, style) {
             var value = style[this.name] || '';
             return transparentRe.test(value) ? 'transparent' : value;
         }
@@ -4151,7 +3820,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         /*
          * Helper function to create the function that will restore the selection.
          */
-        function makeSelectionRestoreFn(activeEl, start, end) {
+        function makeSelectionRestoreFn (activeEl, start, end) {
             return function () {
                 activeEl.selectionStart = start;
                 activeEl.selectionEnd = end;
@@ -4173,7 +3842,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         function getRightMarginFixCleaner(target) {
             var hasInputBug = supports.DisplayChangeInputSelectionBug,
                 hasTextAreaBug = supports.DisplayChangeTextAreaSelectionBug,
-                activeEl, tag, start, end;
+                activeEl, tag, start, end; 
 
             if (hasInputBug || hasTextAreaBug) {
                 activeEl = Element.getActiveElement();
@@ -4199,7 +3868,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return Ext.emptyFn; // avoid special cases, just return a nop
         }
 
-        function fixRightMargin(dom, el, inline, style) {
+        function fixRightMargin (dom, el, inline, style) {
             var result = style.marginRight,
                 domStyle, display;
 
@@ -4216,7 +3885,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
             return result;
         }
 
-        function fixRightMarginAndInputFocus(dom, el, inline, style) {
+        function fixRightMarginAndInputFocus (dom, el, inline, style) {
             var result = style.marginRight,
                 domStyle, cleaner, display;
 
@@ -4246,7 +3915,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
         if (!supports.TransparentColor) {
             colorStyles = ['background-color', 'border-color', 'color', 'outline-color'];
-            for (i = colorStyles.length; i--;) {
+            for (i = colorStyles.length; i--; ) {
                 name = colorStyles[i];
                 camel = Element.normalize(name);
 
@@ -4311,7 +3980,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
 
         if (Ext.isIE && Ext.isIE9m) {
             bodyCls.push(Ext.baseCSSPrefix + 'ie',
-                    Ext.baseCSSPrefix + 'ie9m');
+                         Ext.baseCSSPrefix + 'ie9m');
 
             // very often CSS needs to do checks like "IE7+" or "IE6 or 7". To help
             // reduce the clutter (since CSS/SCSS cannot do these tests), we add some
@@ -4330,7 +3999,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
                 bodyCls.push(Ext.baseCSSPrefix + 'ie8');
             } else {
                 bodyCls.push(Ext.baseCSSPrefix + 'ie9',
-                        Ext.baseCSSPrefix + 'ie9p');
+                             Ext.baseCSSPrefix + 'ie9p');
             }
 
             if (Ext.isIE8m) {
@@ -4341,7 +4010,7 @@ Ext.define('Ext.overrides.dom.Element', (function () {
         if (Ext.isIE10) {
             bodyCls.push(Ext.baseCSSPrefix + 'ie10');
         }
-
+        
         if (Ext.isIE11) {
             bodyCls.push(Ext.baseCSSPrefix + 'ie11');
         }

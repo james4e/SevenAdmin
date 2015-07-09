@@ -12,9 +12,11 @@ Ext.define('SevenAdmin.store.instructor.InstructorStore', {
 
     proxy: {
         type: 'ajax',
-        url: 'data/json/instructor.json',
+        useDefaultXhrHeader: false,
+        url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
         reader: {
-            type: 'json'
+            type: 'json',
+            rootProperty: 'data'
         }
     }
 });

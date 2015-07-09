@@ -40,10 +40,14 @@ Ext.define('SevenAdmin.view.instructor.InstructorViewController', {
 
     onFormSubmit: function (btn) {
         var me = this,
-            form = btn.up('form');
+            form = btn.up('form'),
+            action = form.getForm().getValues().teacherId ? 'edit' : 'create';
         if (form.isValid()) {
             form.submit({
                 url: SevenAdmin.Utils.getAPIUrl('/admin/teacher'),
+                params: {
+                    action: action
+                },
                 waitMsg: 'Submitting mentor information',
                 success: function (fp, o) {
                     me.onFormActionSuccess('submitted'); //TODO: Needs change

@@ -1,6 +1,5 @@
 // @tag core
 // @define Ext.Boot
-// @define Ext
 
 var Ext = Ext || {};
 
@@ -9,7 +8,7 @@ var Ext = Ext || {};
  * @class Ext.Boot
  * @singleton
  */
-Ext.Boot = (function (emptyFn) {
+Ext.Boot = Ext.Boot || (function (emptyFn) {
 
     var doc = document,
         apply = function (dest, src, defaults) {
@@ -31,7 +30,8 @@ Ext.Boot = (function (emptyFn) {
              * In debug builds, adding a "cache" or "disableCacheBuster" query parameter
              * to the page's URL will set this to `false`.
              */
-            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) || !(/http[s]?\:/i.test(location.href)) ||
+            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
+                !(/http[s]?\:/i.test(location.href)) ||
                 /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
                 true,
 
@@ -71,7 +71,7 @@ Ext.Boot = (function (emptyFn) {
             node: !isBrowser && (typeof require === 'function'),
             phantom: (typeof phantom !== 'undefined' && phantom.fs)
         },
-        _tags = {},
+        _tags = (Ext.platformTags = {}),
 
     //<debug>
         _debug = function (message) {
@@ -134,13 +134,18 @@ Ext.Boot = (function (emptyFn) {
             //<debug>
             debug: _debug,
             //</debug>
+
+            /*
+             * enables / disables loading scripts via script / link elements rather
+             * than using ajax / eval
+             */
+            useElements: true,
+
             listeners: [],
 
             Request: Request,
 
             Entry: Entry,
-
-            platformTags: _tags,
 
             /**
              * The defult function that detects various platforms and sets tags
@@ -170,7 +175,7 @@ Ext.Boot = (function (emptyFn) {
                         'Safari',
                         'Windows Phone'
                     ],
-                    isEventSupported = function (name, tag) {
+                    isEventSupported = function(name, tag) {
                         if (tag === undefined) {
                             tag = window;
                         }
@@ -239,7 +244,7 @@ Ext.Boot = (function (emptyFn) {
                     ios: (uaTags.iPad || uaTags.iPhone || uaTags.iPod),
                     android: uaTags.Android || uaTags.Silk,
                     blackberry: isBlackberry,
-                    safari: uaTags.Safari && isBlackberry,
+                    safari: uaTags.Safari && !isBlackberry,
                     chrome: uaTags.Chrome,
                     ie10: isIE10,
                     windows: isIE10 || uaTags.Trident,
@@ -293,27 +298,21 @@ Ext.Boot = (function (emptyFn) {
                 return platform;
             },
 
-            getPlatformTags: function () {
-                return Boot.platformTags;
-            },
-
             filterPlatform: function (platform) {
                 platform = [].concat(platform);
-                var tags = Boot.getPlatformTags(),
-                    len, p, tag;
+                var len, p, tag;
 
                 for (len = platform.length, p = 0; p < len; p++) {
                     tag = platform[p];
-                    if (tags.hasOwnProperty(tag)) {
-                        return !!tags[tag];
+                    if (_tags.hasOwnProperty(tag)) {
+                        return !!_tags[tag];
                     }
                 }
                 return false;
             },
 
             init: function () {
-                var me = this,
-                    scriptEls = doc.getElementsByTagName('script'),
+                var scriptEls = doc.getElementsByTagName('script'),
                     len = scriptEls.length,
                     re = /\/ext(\-[a-z\-]+)?\.js$/,
                     entry, script, src, state, baseUrl, key, n, origin;
@@ -331,13 +330,13 @@ Ext.Boot = (function (emptyFn) {
                     // If we find a script file called "ext-*.js", then the base path is that file's base path.
                     if (!baseUrl) {
                         if (re.test(src)) {
-                            me.hasReadyState = ("readyState" in script);
-                            me.hasAsync = ("async" in script) || !me.hasReadyState;
+                            Boot.hasReadyState = ("readyState" in script);
+                            Boot.hasAsync = ("async" in script) || !Boot.hasReadyState;
                             baseUrl = src;
                         }
                     }
 
-                    if (!me.scripts[key = me.canonicalUrl(src)]) {
+                    if (!Boot.scripts[key = Boot.canonicalUrl(src)]) {
                         //<debug>
                         _debug("creating entry " + key + " in Boot.init");
                         //</debug>
@@ -355,20 +354,20 @@ Ext.Boot = (function (emptyFn) {
                 if (!baseUrl) {
                     script = scriptEls[scriptEls.length - 1];
                     baseUrl = script.src;
-                    me.hasReadyState = ('readyState' in script);
-                    me.hasAsync = ("async" in script) || !me.hasReadyState;
+                    Boot.hasReadyState = ('readyState' in script);
+                    Boot.hasAsync = ("async" in script) || !Boot.hasReadyState;
                 }
 
-                me.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+                Boot.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
                 origin = window.location.origin ||
                     window.location.protocol +
                     "//" +
-                    window.location.hostname +
-                    (window.location.port ? ':' + window.location.port : '');
-                me.origin = origin;
+                    window.location.hostnaBoot +
+                    (window.location.port ? ':' + window.location.port: '');
+                Boot.origin = origin;
 
-                me.detectPlatformTags();
-                Ext.filterPlatform = me.filterPlatform;
+                Boot.detectPlatformTags();
+                Ext.filterPlatform = Boot.filterPlatform;
             },
 
             /*
@@ -416,7 +415,7 @@ Ext.Boot = (function (emptyFn) {
              * @return {Object}
              */
             getConfig: function (name) {
-                return name ? this.config[name] : this.config;
+                return name ? Boot.config[name] : Boot.config;
             },
 
             /*
@@ -426,18 +425,18 @@ Ext.Boot = (function (emptyFn) {
              */
             setConfig: function (name, value) {
                 if (typeof name === 'string') {
-                    this.config[name] = value;
+                    Boot.config[name] = value;
                 } else {
                     for (var s in name) {
-                        this.setConfig(s, name[s]);
+                        Boot.setConfig(s, name[s]);
                     }
                 }
-                return this;
+                return Boot;
             },
 
             getHead: function () {
-                return this.docHead ||
-                    (this.docHead = doc.head ||
+                return Boot.docHead ||
+                    (Boot.docHead = doc.head ||
                         doc.getElementsByTagName('head')[0]);
             },
 
@@ -445,19 +444,19 @@ Ext.Boot = (function (emptyFn) {
                 var config = cfg || {};
                 config.url = url;
                 config.key = key;
-                return this.scripts[key] = new Entry(config);
+                return Boot.scripts[key] = new Entry(config);
             },
 
             getEntry: function (url, cfg) {
-                var key = this.canonicalUrl(url),
-                    entry = this.scripts[key];
+                var key = Boot.canonicalUrl(url),
+                    entry = Boot.scripts[key];
                 if (!entry) {
-                    entry = this.create(url, key, cfg);
+                    entry = Boot.create(url, key, cfg);
                 }
                 return entry;
             },
 
-            processRequest: function (request, sync) {
+            processRequest: function(request, sync) {
                 request.loadEntries(sync);
             },
 
@@ -465,16 +464,15 @@ Ext.Boot = (function (emptyFn) {
                 //<debug>
                 _debug("Boot.load called");
                 //</debug>
-                var me = this,
-                    request = new Request(request);
+                var request = new Request(request);
 
-                if (request.sync || me.syncMode) {
-                    return me.loadSync(request);
+                if (request.sync || Boot.syncMode) {
+                    return Boot.loadSync(request);
                 }
 
                 // If there is a request in progress, we must
                 // queue this new request to be fired  when the current request completes.
-                if (me.currentRequest) {
+                if (Boot.currentRequest) {
                     //<debug>
                     _debug("current active request, suspending this request");
                     //</debug>
@@ -482,76 +480,75 @@ Ext.Boot = (function (emptyFn) {
                     // entries with currently running requests will synchronize state
                     // with this pending one as they complete
                     request.getEntries();
-                    me.suspendedQueue.push(request);
+                    Boot.suspendedQueue.push(request);
                 } else {
-                    me.currentRequest = request;
-                    me.processRequest(request, false);
+                    Boot.currentRequest = request;
+                    Boot.processRequest(request, false);
                 }
-                return me;
+                return Boot;
             },
 
             loadSync: function (request) {
                 //<debug>
                 _debug("Boot.loadSync called");
                 //</debug>
-                var me = this,
-                    request = new Request(request);
+                var request = new Request(request);
 
-                me.syncMode++;
-                me.processRequest(request, true);
-                me.syncMode--;
-                return me;
+                Boot.syncMode++;
+                Boot.processRequest(request, true);
+                Boot.syncMode--;
+                return Boot;
             },
 
-            loadBasePrefix: function (request) {
+            loadBasePrefix: function(request) {
                 request = new Request(request);
                 request.prependBaseUrl = true;
-                return this.load(request);
+                return Boot.load(request);
             },
 
-            loadSyncBasePrefix: function (request) {
+            loadSyncBasePrefix: function(request) {
                 request = new Request(request);
                 request.prependBaseUrl = true;
-                return this.loadSync(request);
+                return Boot.loadSync(request);
             },
 
-            requestComplete: function (request) {
-                var me = this,
-                    next;
-                if (me.currentRequest === request) {
-                    me.currentRequest = null;
-                    while (me.suspendedQueue.length > 0) {
-                        next = me.suspendedQueue.shift();
-                        if (!next.done) {
+            requestComplete: function(request) {
+                var next;
+
+                if (Boot.currentRequest === request) {
+                    Boot.currentRequest = null;
+                    while(Boot.suspendedQueue.length > 0) {
+                        next = Boot.suspendedQueue.shift();
+                        if(!next.done) {
                             //<debug>
                             _debug("resuming suspended request");
                             //</debug>
-                            me.load(next);
+                            Boot.load(next);
                             break;
                         }
                     }
                 }
-                if (!me.currentRequest && me.suspendedQueue.length == 0) {
-                    me.fireListeners();
+                if (!Boot.currentRequest && Boot.suspendedQueue.length == 0) {
+                    Boot.fireListeners();
                 }
             },
 
             isLoading: function () {
-                return !this.currentRequest && this.suspendedQueue.length == 0;
+                return !Boot.currentRequest && Boot.suspendedQueue.length == 0;
             },
 
             fireListeners: function () {
                 var listener;
-                while (this.isLoading() && (listener = this.listeners.shift())) {
+                while (Boot.isLoading() && (listener = Boot.listeners.shift())) {
                     listener();
                 }
             },
 
             onBootReady: function (listener) {
-                if (!this.isLoading()) {
+                if (!Boot.isLoading()) {
                     listener();
                 } else {
-                    this.listeners.push(listener);
+                    Boot.listeners.push(listener);
                 }
             },
 
@@ -563,38 +560,57 @@ Ext.Boot = (function (emptyFn) {
                 return Request.prototype.getPathsFromIndexes(indexMap, loadOrder);
             },
 
-            createLoadOrderMap: function (loadOrder) {
+            createLoadOrderMap: function(loadOrder) {
                 return Request.prototype.createLoadOrderMap(loadOrder);
             },
 
-            fetchSync: function (url) {
-                var exception, xhr, status, content;
+            fetch: function(url, complete, scope, async) {
+                async = (async === undefined) ? !!complete : async;
 
-                exception = false;
-                xhr = new XMLHttpRequest();
+                var xhr = new XMLHttpRequest(),
+                    result, status, content, exception = false,
+                    readyStateChange = function () {
+                        if (xhr && xhr.readyState == 4) {
+                            status = (xhr.status === 1223) ? 204 :
+                                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
+                                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
+                            content = xhr.responseText;
+                            result = {
+                                content: content,
+                                status: status,
+                                exception: exception
+                            };
+                            if (complete) {
+                                complete.call(scope, result);
+                            }
+                            xhr = null;
+                        }
+                    };
 
-                try {
-                    xhr.open('GET', url, false);
-                    xhr.send(null);
-                } catch (e) {
-                    exception = true;
+                if (async) {
+                    xhr.onreadystatechange = readyStateChange;
                 }
 
-                status = (xhr.status === 1223) ? 204 :
-                    (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
-                        (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
-                content = xhr.responseText;
+                try {
+                    //<debug>
+                    _debug("fetching " + url + " " + (async ? "async" : "sync"));
+                    //</debug>
+                    xhr.open('GET', url, async);
+                    xhr.send(null);
+                } catch (err) {
+                    exception = err;
+                    readyStateChange();
+                    return result;
+                }
 
-                xhr = null; // Prevent potential IE memory leak
+                if (!async) {
+                    readyStateChange();
+                }
 
-                return {
-                    content: content,
-                    exception: exception,
-                    status: status
-                };
+                return result;
             },
 
-            notifyAll: function (entry) {
+            notifyAll: function(entry) {
                 entry.notifyRequests();
             }
         };
@@ -605,22 +621,18 @@ Ext.Boot = (function (emptyFn) {
      * in this request.
      */
     function Request(cfg) {
-        if (cfg.$isRequest) {
+        if(cfg.$isRequest) {
             return cfg;
         }
 
         var cfg = cfg.url ? cfg : {url: cfg},
             url = cfg.url,
             urls = url.charAt ? [ url ] : url,
-            boot = cfg.boot || Boot,
-            charset = cfg.charset || boot.config.charset,
-            buster = (('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
-                (boot.config.disableCachingParam + '=' + new Date().getTime());
+            charset = cfg.charset || Boot.config.charset;
+
         _apply(cfg, {
             urls: urls,
-            boot: boot,
-            charset: charset,
-            buster: buster
+            charset: charset
         });
         _apply(this, cfg);
     };
@@ -796,7 +808,7 @@ Ext.Boot = (function (emptyFn) {
                 expanded;
 
             if (!me.expanded) {
-                expanded = this.expandUrls(urls);
+                expanded = this.expandUrls(urls, true);
                 me.expanded = true;
             } else {
                 expanded = urls;
@@ -818,8 +830,8 @@ Ext.Boot = (function (emptyFn) {
             return this.urls;
         },
 
-        prepareUrl: function (url) {
-            if (this.prependBaseUrl) {
+        prepareUrl: function(url) {
+            if(this.prependBaseUrl) {
                 return Boot.baseUrl + url;
             }
             return url;
@@ -846,30 +858,30 @@ Ext.Boot = (function (emptyFn) {
             return entries;
         },
 
-        loadEntries: function (sync) {
+        loadEntries: function(sync) {
             var me = this,
                 entries = me.getEntries(),
                 len = entries.length,
                 start = me.loadStart || 0,
                 continueLoad, entry, i;
 
-            if (sync !== undefined) {
+            if(sync !== undefined) {
                 me.sync = sync;
             }
 
             me.loaded = me.loaded || 0;
             me.loading = me.loading || len;
 
-            for (i = start; i < len; i++) {
+            for(i = start; i < len; i++) {
                 entry = entries[i];
-                if (!entry.loaded) {
+                if(!entry.loaded) {
                     continueLoad = entries[i].load(me.sync);
                 } else {
                     continueLoad = true;
                 }
-                if (!continueLoad) {
+                if(!continueLoad) {
                     me.loadStart = i;
-                    entry.onDone(function () {
+                    entry.onDone(function(){
                         me.loadEntries(sync);
                     });
                     break;
@@ -931,24 +943,24 @@ Ext.Boot = (function (emptyFn) {
             }
         },
 
-        onDone: function (listener) {
+        onDone: function(listener) {
             var me = this,
                 listeners = me.listeners || (me.listeners = []);
-            if (me.done) {
+            if(me.done) {
                 listener(me);
             } else {
                 listeners.push(listener);
             }
         },
 
-        fireListeners: function () {
+        fireListeners: function() {
             var listeners = this.listeners,
                 listener;
-            if (listeners) {
+            if(listeners) {
                 //<debug>
                 _debug("firing request listeners");
                 //</debug>
-                while ((listener = listeners.shift())) {
+                while((listener = listeners.shift())) {
                     listener(this);
                 }
             }
@@ -961,7 +973,7 @@ Ext.Boot = (function (emptyFn) {
      * interested in this url that the content is available.
      */
     function Entry(cfg) {
-        if (cfg.$isEntry) {
+        if(cfg.$isEntry) {
             return cfg;
         }
 
@@ -969,13 +981,28 @@ Ext.Boot = (function (emptyFn) {
         _debug("creating entry for " + cfg.url);
         //</debug>
 
-        var boot = cfg.boot || Boot,
-            charset = cfg.charset || boot.config.charset,
-            buster = cfg.buster || ((('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
-                (boot.config.disableCachingParam + '=' + new Date().getTime()));
+        var charset = cfg.charset || Boot.config.charset,
+            manifest = Ext.manifest,
+            loader = manifest && manifest.loader,
+            cache = (cfg.cache !== undefined) ? cfg.cache : (loader && loader.cache),
+            buster, busterParam;
+
+        if(cache === undefined) {
+            cache = !Boot.config.disableCaching;
+        }
+
+        if(cache === false) {
+            buster = +new Date();
+        } else if(cache !== true) {
+            buster = cache;
+        }
+
+        if(buster) {
+            busterParam = (loader && loader.cacheParam) || Boot.config.disableCachingParam;
+            buster = busterParam + "=" + buster;
+        };
 
         _apply(cfg, {
-            boot: boot,
             charset: charset,
             buster: buster,
             requests: []
@@ -988,9 +1015,9 @@ Ext.Boot = (function (emptyFn) {
         evaluated: false,
         loaded: false,
 
-        isCrossDomain: function () {
+        isCrossDomain: function() {
             var me = this;
-            if (me.crossDomain === undefined) {
+            if(me.crossDomain === undefined) {
                 //<debug>
                 _debug("checking " + me.getLoadUrl() + " for prefix " + Boot.origin);
                 //</debug>
@@ -1017,11 +1044,11 @@ Ext.Boot = (function (emptyFn) {
                 if (me.isCss()) {
                     tag = tag || "link";
                     el = doc.createElement(tag);
-                    if (tag == "link") {
+                    if(tag == "link") {
                         el.rel = 'stylesheet';
                         me.prop = 'href';
                     } else {
-                        me.prop = "textContent";
+                        me.prop="textContent";
                     }
                     el.type = "text/css";
                 } else {
@@ -1052,46 +1079,9 @@ Ext.Boot = (function (emptyFn) {
         fetch: function (req) {
             var url = this.getLoadUrl(),
                 async = !!req.async,
-                xhr = new XMLHttpRequest(),
-                complete = req.complete,
-                status, content, exception = false,
-                readyStateChange = function () {
-                    if (xhr && xhr.readyState == 4) {
-                        if (complete) {
-                            status = (xhr.status === 1223) ? 204 :
-                                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
-                                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
-                            content = xhr.responseText;
-                            complete({
-                                content: content,
-                                status: status,
-                                exception: exception
-                            });
-                        }
-                        xhr = null;
-                    }
-                };
+                complete = req.complete;
 
-            async = !!async;
-
-            if (async) {
-                xhr.onreadystatechange = readyStateChange;
-            }
-
-            try {
-                //<debug>
-                _debug("fetching " + url + " " + (async ? "async" : "sync"));
-                //</debug>
-                xhr.open('GET', url, async);
-                xhr.send(null);
-            } catch (err) {
-                exception = err;
-                readyStateChange();
-            }
-
-            if (!async) {
-                readyStateChange();
-            }
+            Boot.fetch(url, complete, this, async);
         },
 
         onContentLoaded: function (response) {
@@ -1131,25 +1121,25 @@ Ext.Boot = (function (emptyFn) {
             }
         },
 
-        createLoadElement: function (callback) {
+        createLoadElement: function(callback) {
             var me = this,
                 el = me.getElement(),
-                readyStateChange = function () {
+                readyStateChange = function(){
                     if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                        if (callback) {
+                        if(callback) {
                             callback();
                         }
                     }
                 },
-                errorFn = function () {
+                errorFn = function() {
                     me.error = true;
-                    if (callback) {
+                    if(callback) {
                         callback();
                     }
                 };
             me.preserve = true;
             el.onerror = errorFn;
-            if (Boot.hasReadyState) {
+            if(Boot.hasReadyState) {
                 el.onreadystatechange = readyStateChange;
             } else {
                 el.onload = callback;
@@ -1158,7 +1148,7 @@ Ext.Boot = (function (emptyFn) {
             el[me.prop] = me.getLoadUrl();
         },
 
-        onLoadElementReady: function () {
+        onLoadElementReady: function() {
             Boot.getHead().appendChild(this.getElement());
             this.evaluated = true;
         },
@@ -1178,7 +1168,7 @@ Ext.Boot = (function (emptyFn) {
                 basePath = key.substring(0, key.lastIndexOf("/") + 1);
                 base = doc.createElement('base');
                 base.href = basePath;
-                if (head.firstChild) {
+                if(head.firstChild) {
                     head.insertBefore(base, head.firstChild);
                 } else {
                     head.appendChild(base);
@@ -1196,7 +1186,7 @@ Ext.Boot = (function (emptyFn) {
                 ieMode = ('styleSheet' in el);
 
                 head.appendChild(base);
-                if (ieMode) {
+                if(ieMode) {
                     head.appendChild(el);
                     el.styleSheet.cssText = content;
                 } else {
@@ -1217,18 +1207,18 @@ Ext.Boot = (function (emptyFn) {
             return me;
         },
 
-        loadCrossDomain: function () {
+        loadCrossDomain: function() {
             var me = this,
-                complete = function () {
+                complete = function(){
                     me.loaded = me.evaluated = me.done = true;
                     me.notifyRequests();
                 };
-            if (me.isCss()) {
+            if(me.isCss()) {
                 me.createLoadElement();
                 me.evaluateLoadElement();
                 complete();
             } else {
-                me.createLoadElement(function () {
+                me.createLoadElement(function(){
                     complete();
                 });
                 me.evaluateLoadElement();
@@ -1240,7 +1230,24 @@ Ext.Boot = (function (emptyFn) {
             return true;
         },
 
-        loadSync: function () {
+        loadElement: function() {
+            var me = this,
+                complete = function(){
+                    me.loaded = me.evaluated = me.done = true;
+                    me.notifyRequests();
+                };
+            if(me.isCss()) {
+                return me.loadCrossDomain();
+            } else {
+                me.createLoadElement(function(){
+                    complete();
+                });
+                me.evaluateLoadElement();
+            }
+            return true;
+        },
+
+        loadSync: function() {
             var me = this;
             me.fetch({
                 async: false,
@@ -1255,7 +1262,7 @@ Ext.Boot = (function (emptyFn) {
         load: function (sync) {
             var me = this;
             if (!me.loaded) {
-                if (me.loading) {
+                if(me.loading) {
                     // if we're calling back through load and we're loading but haven't 
                     // yet loaded, then we should be in a sequential, cross domain 
                     // load scenario which means we can't continue the load on the 
@@ -1271,19 +1278,22 @@ Ext.Boot = (function (emptyFn) {
                 if (!sync) {
                     // if cross domain, just inject the script tag and let the onload
                     // events drive the progression
-                    if (me.isCrossDomain()) {
+                    if(me.isCrossDomain()) {
                         return me.loadCrossDomain();
                     }
                     // for IE, use the readyStateChange allows us to load scripts in parallel
                     // but serialize the evaluation by appending the script node to the 
                     // document
-                    else if (!me.isCss() && Boot.hasReadyState) {
+                    else if(!me.isCss() && Boot.hasReadyState) {
                         me.createLoadElement(function () {
                             me.loaded = true;
                             me.notifyRequests();
                         });
                     }
 
+                    else if(Boot.useElements) {
+                        return me.loadElement();
+                    }
                     // for other browsers, just ajax the content down in parallel, and use
                     // globalEval to serialize evaluation
                     else {
@@ -1313,20 +1323,20 @@ Ext.Boot = (function (emptyFn) {
             this.content = null;
         },
 
-        evaluateLoadElement: function () {
+        evaluateLoadElement: function() {
             Boot.getHead().appendChild(this.getElement());
         },
 
         evaluate: function () {
             var me = this;
-            if (!me.evaluated) {
-                if (me.evaluating) {
+            if(!me.evaluated) {
+                if(me.evaluating) {
                     return;
                 }
                 me.evaluating = true;
-                if (me.content !== undefined) {
+                if(me.content !== undefined) {
                     me.evaluateContent();
-                } else if (!me.error) {
+                } else if(!me.error) {
                     me.evaluateLoadElement();
                 }
                 me.evaluated = me.done = true;
@@ -1379,29 +1389,29 @@ Ext.Boot = (function (emptyFn) {
                 request = requests[i];
                 request.processLoadedEntries();
             }
-            if (this.done) {
+            if(this.done) {
                 this.fireListeners();
             }
         },
 
-        onDone: function (listener) {
+        onDone: function(listener) {
             var me = this,
                 listeners = me.listeners || (me.listeners = []);
-            if (me.done) {
+            if(me.done) {
                 listener(me);
             } else {
                 listeners.push(listener);
             }
         },
 
-        fireListeners: function () {
+        fireListeners: function() {
             var listeners = this.listeners,
                 listener;
-            if (listeners && listeners.length > 0) {
+            if(listeners && listeners.length > 0) {
                 //<debug>
                 _debug("firing event listeners for url " + this.url);
                 //</debug>
-                while ((listener = listeners.shift())) {
+                while((listener = listeners.shift())) {
                     listener(this);
                 }
             }
@@ -1450,12 +1460,8 @@ Ext.Boot = (function (emptyFn) {
  * @method
  */
 Ext.globalEval = Ext.globalEval || (this.execScript
-    ? function (code) {
-    execScript(code);
-}
-    : function ($$code) {
-    eval.call(window, $$code);
-});
+    ? function (code) { execScript(code); }
+    : function ($$code) { eval.call(window, $$code); });
 
 //<feature legacyBrowser>
 /*

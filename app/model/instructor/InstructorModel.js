@@ -40,10 +40,20 @@ Ext.define('SevenAdmin.model.instructor.InstructorModel', {
             name: 'signupDate'
         },
         {
-            name: 'majors'
+            name: 'majors',
+            convert: function (v) {
+                if (SevenAdmin.Utils.isJson(v)) {
+                    return _.pluck(Ext.decode(v), 'text')
+                }
+            }
         },
         {
-            name: 'subjects'
+            name: 'subjects',
+            convert: function (v) {
+                if (SevenAdmin.Utils.isJson(v)) {
+                    return _.pluck(Ext.decode(v), 'text')
+                }
+            }
         },
         {
             name: 'country'
