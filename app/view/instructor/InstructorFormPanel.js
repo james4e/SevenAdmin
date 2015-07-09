@@ -5,6 +5,13 @@
 Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
     extend: 'SevenAdmin.component.Panel',
     xtype: 'instructor-form-panel',
+    requires: [
+        'Ext.form.field.File',
+        'Ext.form.field.Display',
+        'Ext.form.field.Tag',
+        'SevenAdmin.store.instructor.InstructorStore',
+        'Ext.grid.Panel'
+    ],
     autoScroll: true,
     title: 'Mentor Detail',
     viewModel: {
@@ -13,10 +20,6 @@ Ext.define('SevenAdmin.view.instructor.InstructorFormPanel', {
             imageHtml: '<div class="image-preview center-block" style="background-image:url(resources/images/unknown-user.png)"></div>'
         }
     },
-    requires: [
-        'SevenAdmin.store.instructor.InstructorStore',
-        'Ext.grid.Panel'
-    ],
     items: [
         {
             xtype: 'form',

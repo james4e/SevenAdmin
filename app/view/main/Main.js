@@ -7,6 +7,8 @@
 Ext.define('SevenAdmin.view.main.Main', {
     extend: 'Ext.container.Viewport',
     requires: [
+        'Ext.layout.container.Border',
+        'Ext.layout.container.Card',
         'SevenAdmin.view.main.MainViewController',
         'SevenAdmin.view.main.MainViewModel',
         'SevenAdmin.view.main.Navigation',

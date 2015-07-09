@@ -99,7 +99,7 @@ Ext.define('SevenAdmin.view.instructor.InstructorGridPanel', {
                     items: [
                         {
                             xtype: 'button',
-                            text: 'New',
+                            text: '<i class="icon-user-add"></i> New',
                             itemId: 'new'
                         }
                     ]

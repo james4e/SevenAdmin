@@ -4,5 +4,5 @@
 }
 
 .x-form-text {
-    display: inherit;
+    display: inherit !important;
 }

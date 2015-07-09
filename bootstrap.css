@@ -9,5 +9,6 @@
 @import 'resources/css/component.css';
 @import 'resources/css/animate.css';
 @import 'resources/css/loader.css';
-@import 'resources/font/font.css';
+@import 'resources/css/font.css';
+@import 'resources/css/fontello.css';
 @import 'resources/css/override.css';

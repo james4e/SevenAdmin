@@ -159,7 +159,7 @@
     padding: 0; }
     /* line 374, ../../../ext-theme-neutral/sass/src/panel/Panel.scss */
     .x-panel-header-title-light-framed > .x-title-text-light-framed:after {
-      content: 'Ext JS Trial';
+      content: '';
       position: absolute;
       top: 0;
       right: 0;
